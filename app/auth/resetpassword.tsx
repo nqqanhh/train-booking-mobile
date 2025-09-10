@@ -1,0 +1,122 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
+
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import { useRouter } from "expo-router";
+export default function ResetPasswordScreen() {
+  const router = useRouter();
+  const handleGoBack = () => {
+    router.replace("/auth/login");
+  };
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.exitIcon} onPress={() => handleGoBack()}>
+        <Ionicons name="chevron-back" size={40} color="black" />
+      </TouchableOpacity>
+      <View style={{ marginTop: 90 }}>
+        <Text style={styles.title}>Set up new password</Text>
+        <Text style={styles.titleUnder}>
+          Password must be 8-20 charaters with at least 1 number, 1 letter and 1
+          special symbol
+        </Text>
+        <View style={{ marginTop: 20 }}>
+          <Text style={styles.inputLabel}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your new password"
+            secureTextEntry={true}
+            placeholderTextColor={"#999"}
+          />
+          <Text style={styles.inputLabel}>Confirm password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Re-enter your new password"
+            secureTextEntry={true}
+            placeholderTextColor={"#999"}
+          />
+        </View>
+        <View style={styles.bottomContainer}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "#3ac21fff" }]}
+            onPress={() => console.log("pressed reset password")}
+          >
+            <Text style={styles.buttonText}>Confirm</Text>
+          </TouchableOpacity>
+        </View>
+      </View>{" "}
+    </View>
+  );
+}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "flex-start",
+
+    paddingHorizontal: 20,
+    paddingVertical: 70,
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    // textAlign: "center",
+  },
+  titleUnder: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 40,
+    // textAlign: "center",
+  },
+  button: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    height: 50,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 30,
+    marginBottom: 7,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
+  },
+  bottomContainer: {
+    flexDirection: "column",
+    justifyContent: "space-between",
+    marginTop: 100,
+  },
+  inputLabel: {
+    fontSize: 16,
+    marginBottom: 5,
+    color: "#333",
+    fontWeight: "600",
+  },
+  input: {
+    height: 50,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+  exitIcon: {
+    position: "absolute",
+    top: 60,
+    left: 40,
+  },
+  minorContainer: {
+    flexDirection: "column",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+});
