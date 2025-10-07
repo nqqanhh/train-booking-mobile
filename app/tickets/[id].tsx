@@ -1,4 +1,4 @@
-import { RootState } from "@/redux/store";
+import { RootState } from "@/src/redux/store/store";
 import { useLocalSearchParams } from "expo-router";
 import { Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";

@@ -1,0 +1,7 @@
+- Create app/auth/ directory
+- Move all auth screens from src/screens/auth/ to app/auth/
+- Create app/tickets/ directory
+- Move all tickets screens from src/screens/tickets/ to app/tickets/
+- Update import in app/(tabs)/index.tsx to import Login from "../auth/login"
+- Update router.push in src/screens/auth/login.tsx to "/auth/register" instead of "/register"
+- Test the navigation

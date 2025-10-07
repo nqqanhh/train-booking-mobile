@@ -1,13 +1,13 @@
-import { Slot } from "expo-router";
-import { Provider } from "react-redux";
-import { PersistGate } from "redux-persist/integration/react";
-import { persistor, store } from "../redux/store";
-export default function RootLayout() {
+import { AuthProvider } from "@/src/context/AuthContext";
+import { SplashScreen, Stack } from "expo-router";
+SplashScreen.preventAutoHideAsync().catch(() => {});
+export default function Root() {
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <Slot />
-      </PersistGate>
-    </Provider>
+    <AuthProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </AuthProvider>
   );
 }

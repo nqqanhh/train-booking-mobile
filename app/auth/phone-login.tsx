@@ -1,5 +1,6 @@
+import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,8 +12,10 @@ export default function PhoneLogin() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [hidePassword, setHidePassword] = useState(true);
+  const [email, setEmail] = useState("");
 
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleGoBack = () => {
     router.back();
@@ -25,6 +28,17 @@ export default function PhoneLogin() {
   const handleShowPasswordLogin = () => {
     setHidePassword(!hidePassword);
   };
+  const onSubmit = async () => {
+    try {
+      await login(email.trim(), password);
+    } catch (error: any) {
+      console.log(
+        "REGISTER ERROR",
+        error?.response?.data?.message || error?.message
+      );
+      alert(error?.response?.data?.message);
+    }
+  };
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => handleGoBack()}>
@@ -35,16 +49,18 @@ export default function PhoneLogin() {
         </Text>
       </TouchableOpacity>
       <Text style={styles.title}>Welcome back</Text>
-      <Text style={styles.titleUnder}>Enter your phone number to sign in</Text>
+      <Text style={styles.titleUnder}>
+        Enter your phone number or Email to sign in
+      </Text>
       <View style={styles.middleContainer}>
         <View>
-          <Text style={styles.inputLabel}>Phone numbers</Text>
+          <Text style={styles.inputLabel}>Phone numbers or Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your phone number"
-            keyboardType="phone-pad"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
+            placeholder="Enter your Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
             placeholderTextColor={"#999"}
           />
         </View>
@@ -82,7 +98,7 @@ export default function PhoneLogin() {
         </Text>
         <TouchableOpacity
           style={[styles.button, { backgroundColor: "#3ac21fff" }]}
-          onPress={handleSendOtp}
+          onPress={onSubmit}
         >
           <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>

@@ -1,4 +1,4 @@
-import { RootState } from "@/redux/store";
+import { RootState } from "@/src/redux/store/store";
 import { useRouter } from "expo-router";
 
 import { FlatList, Text, TouchableOpacity, View } from "react-native";

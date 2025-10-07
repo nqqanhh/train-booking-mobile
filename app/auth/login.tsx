@@ -1,6 +1,7 @@
-import ParallaxScrollView from "@/components/ParallaxScrollView";
+import ParallaxScrollView from "@/src/components/ParallaxScrollView";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity } from "react-native";
+
 export default function Login() {
   const router = useRouter();
   const signInWithGoogle = async () => {
@@ -15,12 +16,13 @@ export default function Login() {
   const signInWithPhone = async () => {
     router.push("/auth/phone-login");
   };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
       headerImage={
         <Image
-          source={require("../../assets/images/train_imgage.jpg")}
+          source={require("@/assets/images/train_imgage.jpg")}
           style={{ width: 400, height: 250 }}
           resizeMode="cover"
         />

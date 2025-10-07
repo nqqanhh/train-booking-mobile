@@ -1,9 +1,9 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Button, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useDispatch } from "react-redux";
-import { addTicket } from "../../redux/ticketSlice";
+import { addTicket } from "../../redux/slices/ticketSlice";
 
 export default function SuccessScreen() {
   const router = useRouter();
