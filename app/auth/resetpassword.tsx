@@ -1,5 +1,7 @@
+import { useAuth } from "@/src/hooks/useAuth";
 import Ionicons from "@expo/vector-icons/Ionicons";
-
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,12 +9,34 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-import { useRouter } from "expo-router";
 export default function ResetPasswordScreen() {
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
+  const { email } = useLocalSearchParams();
+
   const handleGoBack = () => {
     router.replace("/auth/login");
+  };
+  const { resetPassword } = useAuth();
+
+  const validatePassword = (password: string, cofirmPassword: string) => {
+    return password === cofirmPassword;
+  };
+  const onSubmit = async () => {
+    if (!validatePassword(newPassword, confirmPassword)) {
+      console.log("Password and confirm password do not match");
+      return;
+    }
+    try {
+      const new_password = newPassword;
+      const reset_token = (await localStorage.getItem("resetToken")) || "";
+      await resetPassword(String(email), reset_token, new_password);
+    } catch (error: any) {
+      console.log(error?.response?.data?.messsage || error?.message);
+    } finally {
+      router.replace("/auth/login");
+    }
   };
   return (
     <View style={styles.container}>
@@ -30,6 +54,8 @@ export default function ResetPasswordScreen() {
           <TextInput
             style={styles.input}
             placeholder="Enter your new password"
+            value={newPassword}
+            onChangeText={setNewPassword}
             secureTextEntry={true}
             placeholderTextColor={"#999"}
           />
@@ -37,6 +63,8 @@ export default function ResetPasswordScreen() {
           <TextInput
             style={styles.input}
             placeholder="Re-enter your new password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
             secureTextEntry={true}
             placeholderTextColor={"#999"}
           />
@@ -44,7 +72,7 @@ export default function ResetPasswordScreen() {
         <View style={styles.bottomContainer}>
           <TouchableOpacity
             style={[styles.button, { backgroundColor: "#3ac21fff" }]}
-            onPress={() => console.log("pressed reset password")}
+            onPress={() => onSubmit()}
           >
             <Text style={styles.buttonText}>Confirm</Text>
           </TouchableOpacity>

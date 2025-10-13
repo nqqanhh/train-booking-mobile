@@ -3,14 +3,28 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
+import { useAuth } from "@/src/hooks/useAuth";
+
 export default function EnterOTPScreen() {
   const router = useRouter();
   const { email } = useLocalSearchParams();
-
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [emailState, setEmailState] = useState(email || "");
+
+  const { verifyOtp } = useAuth();
+
   const handleGoBack = () => {
     router.replace("/auth/phone-login");
   };
+
+  const onSubmit = async () => {
+    try {
+      await verifyOtp(emailState, otp);
+      router.replace(`/auth/resetpassword?email=${emailState}`);
+    } catch (error) {
+      
+    }
+  }
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.exitIcon} onPress={() => handleGoBack()}>
@@ -18,7 +32,7 @@ export default function EnterOTPScreen() {
       </TouchableOpacity>
       <TouchableOpacity
         style={{ position: "absolute", top: "70", right: "40" }}
-        onPress={() => router.push("/auth/resetpassword")}
+        onPress={() => router.push("/auth/forgotpassword")}
       >
         <Ionicons name="chevron-back" size={40} color="black" />
       </TouchableOpacity>
@@ -27,11 +41,16 @@ export default function EnterOTPScreen() {
         <Text style={styles.titleUnder}>
           To confirm the account, enter the 6-digit code we sent to {emailState}{" "}
         </Text>
-        <OtpInput
-          numberOfDigits={6}
-          onTextChange={(text) => console.log(text)}
-        />
+        <OtpInput numberOfDigits={6} onTextChange={setOtp} />
       </View>
+            <View style={styles.bottomContainer}>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: "#3ac21fff" }]}
+                onPress={() => onSubmit()}
+              >
+                <Text style={styles.buttonText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
     </View>
   );
 }
@@ -89,5 +108,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 60,
     left: 40,
+  },
+  bottomContainer: {
+    flexDirection: "column",
+    justifyContent: "space-between",
+    marginTop: 90,
   },
 });

@@ -10,21 +10,28 @@ import {
   View,
 } from "react-native";
 
+import { useAuth } from "@/src/hooks/useAuth";
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
 
+  const { requestOtp, setResetEmail } = useAuth();
   const router = useRouter();
   const handleGoBack = () => {
     router.replace("/auth/login");
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (validateEmail(email) === false) {
       Alert.alert("Invalid email", "Please enter a valid email address.");
       return;
-    } else {
+    }
+    try {
+      await requestOtp(email);
       router.replace(`/auth/otp?email=${email}`);
-      console.log("Send verification code to email");
+      
+      console.log("Send verification code to email: ", email);
+    } catch (error: any) {
+      console.log(error?.response?.data?.messsage || error?.message);
     }
   };
 

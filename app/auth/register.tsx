@@ -38,6 +38,8 @@ export default function RegisterPage() {
         "Tạo tài khoản thành công! Hãy đăng nhập để tiếp tục.",
         [{ text: "OK", onPress: () => router.replace("/auth/login") }]
       );
+      console.log("Tạo tài khoản thành công!");
+      router.replace("/auth/phone-login");
     } catch (error: any) {
       console.log(
         "REGISTER ERROR",

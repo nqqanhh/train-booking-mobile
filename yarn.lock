@@ -6136,6 +6136,11 @@ react-is@^19.1.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.2.0.tgz#ddc3b4a4e0f3336c3847f18b806506388d7b9973"
   integrity sha512-x3Ax3kNSMIIkyVYhWPyO09bu0uttcAIoecO/um/rKGQ4EltYWVYtyiGkS/3xMynrbVQdS69Jhlv8FXUEZehlzA==
 
+react-native-autocomplete-input@^5.5.6:
+  version "5.5.6"
+  resolved "https://registry.yarnpkg.com/react-native-autocomplete-input/-/react-native-autocomplete-input-5.5.6.tgz#df2700877bbaad8c22ebd551b82a8cd9dabbe76d"
+  integrity sha512-cUTzZpz9BseWff0RuSPAp+d+3C5NRl6kLUTIqNuwDoZuTqrxbOz87d0zP4M2Ncnv1KcPkm4Hs1T6Qdj4reM9Tg==
+
 react-native-date-picker@^5.0.13:
   version "5.0.13"
   resolved "https://registry.yarnpkg.com/react-native-date-picker/-/react-native-date-picker-5.0.13.tgz#fe05f58652aaeee9e67f73cf7436c32a623ff3a4"

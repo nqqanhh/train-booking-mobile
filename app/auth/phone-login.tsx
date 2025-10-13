@@ -31,9 +31,10 @@ export default function PhoneLogin() {
   const onSubmit = async () => {
     try {
       await login(email.trim(), password);
+      router.push("/(tabs)");
     } catch (error: any) {
       console.log(
-        "REGISTER ERROR",
+        "LOGIN ERROR",
         error?.response?.data?.message || error?.message
       );
       alert(error?.response?.data?.message);
