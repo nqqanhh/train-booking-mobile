@@ -28,6 +28,16 @@ export const getRoutes = async () => {
   return pickArray(data);
 };
 
+export const getRouteByOriginDestination = async (
+  origin: string,
+  destination: string
+) => {
+  const { data } = await api.get("/routes/one", {
+    params: { origin, destination },
+  });
+  console.log("[/routes search]", data?.route);
+  return data?.route || null;
+};
 export const getRouteIdByOriginDestination = async (
   origin: string,
   destination: string

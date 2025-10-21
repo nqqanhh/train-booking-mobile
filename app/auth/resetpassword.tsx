@@ -35,7 +35,7 @@ export default function ResetPasswordScreen() {
     } catch (error: any) {
       console.log(error?.response?.data?.messsage || error?.message);
     } finally {
-      router.replace("/auth/login");
+      router.replace("/auth/resetpasswordsuccess");
     }
   };
   return (

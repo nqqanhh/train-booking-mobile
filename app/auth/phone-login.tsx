@@ -13,6 +13,7 @@ export default function PhoneLogin() {
   const [password, setPassword] = useState("");
   const [hidePassword, setHidePassword] = useState(true);
   const [email, setEmail] = useState("");
+  const [err, setErr] = useState<string | null>(null);
 
   const router = useRouter();
   const { login } = useAuth();
@@ -29,6 +30,7 @@ export default function PhoneLogin() {
     setHidePassword(!hidePassword);
   };
   const onSubmit = async () => {
+    setErr(null);
     try {
       await login(email.trim(), password);
       router.push("/(tabs)");
@@ -37,7 +39,8 @@ export default function PhoneLogin() {
         "LOGIN ERROR",
         error?.response?.data?.message || error?.message
       );
-      alert(error?.response?.data?.message);
+      alert(error?.message);
+      setErr(error?.message || "Đăng nhập thất bại");
     }
   };
   return (

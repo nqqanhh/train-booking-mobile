@@ -1,8 +1,9 @@
 // app/(tabs)/index.tsx
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -14,7 +15,9 @@ import {
 import {
   getRouteIdByOriginDestination,
   getRoutes,
+  getRouteByOriginDestination,
 } from "@/src/services/bookingApi";
+import { useAuth } from "@/src/hooks/useAuth";
 
 // (tuỳ chọn) nếu muốn date picker native:
 // expo install @react-native-community/datetimepicker
@@ -43,7 +46,8 @@ export default function HomeScreen() {
   const [ret, setRet] = useState<Date>(new Date(Date.now() + 4 * 86400000));
   const [seats, setSeats] = useState(1);
   const [routes, setRoutes] = useState<any[]>([]);
-
+  const [modalVisible, setModalVisible] = useState(false);
+  const [isSelectingOrigin, setIsSelectingOrigin] = useState(true);
   const departStr = useMemo(() => formatDate(depart), [depart]);
   const returnStr = useMemo(() => formatDate(ret), [ret]);
 
@@ -63,7 +67,8 @@ export default function HomeScreen() {
     fetchRoutes();
   }, []);
   const onSearch = async () => {
-    const routeId = await getRouteIdByOriginDestination(fromLoc, toLoc);
+    const route = await getRouteByOriginDestination(fromLoc, toLoc);
+    const routeId = route.id;
     if (!routeId || isNaN(Number(routeId))) {
       alert("Không tìm thấy route hợp lệ (routeId null/NaN)");
       return;
@@ -72,17 +77,21 @@ export default function HomeScreen() {
       pathname: "/booking/trips",
       params: {
         // // ví dụ tìm route theo origin/destination
-        // origin: fromLoc,
-        // destination: toLoc,
+        origin: fromLoc,
+        destination: toLoc,
         routeId: String(routeId),
-        date: toISO(depart),
-        passengers: String(seats),
-        roundtrip: String(!oneWay),
-        return_date: !oneWay ? toISO(ret) : undefined,
+        // date: toISO(depart),
+        // passengers: String(seats),
+        // roundtrip: String(!oneWay),
+        // return_date: !oneWay ? toISO(ret) : undefined,
       },
     });
   };
 
+  const handleToggleModal = () => {
+    setModalVisible((modalVisible) => (modalVisible = !modalVisible));
+    console.log(modalVisible);
+  };
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.bg }}
@@ -147,19 +156,20 @@ export default function HomeScreen() {
           <FieldCard
             label="Current Location"
             value={fromLoc}
-            onPress={() =>
-              // ở đây có thể mở modal chọn ga
-              setFromLoc(fromLoc === "Sài Gòn" ? "Hà Nội" : "Sài Gòn")
-            }
+            onPress={() => {
+              setIsSelectingOrigin(true);
+              setModalVisible(true);
+            }}
           />
 
           {/* Destination */}
           <FieldCard
             label="Destination"
             value={toLoc}
-            onPress={() =>
-              setToLoc(toLoc === "Phan Thiết" ? "Nha Trang" : "Phan Thiết")
-            }
+            onPress={() => {
+              setIsSelectingOrigin(false);
+              setModalVisible(true);
+            }}
           />
 
           {/* Dates */}
@@ -238,7 +248,7 @@ export default function HomeScreen() {
 
           {/* Search button */}
           <TouchableOpacity
-            onPress={onSearch}
+            onPress={() => onSearch()}
             activeOpacity={0.8}
             style={{
               marginTop: 16,
@@ -297,6 +307,81 @@ export default function HomeScreen() {
           />
         )}
       </View>
+      {/* Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.3)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 16,
+              width: "80%",
+              maxHeight: "70%",
+              padding: 20,
+            }}
+          >
+            <Text
+              style={{
+                fontWeight: "700",
+                fontSize: 16,
+                color: theme.text,
+                marginBottom: 10,
+              }}
+            >
+              {isSelectingOrigin ? "Select Origin" : "Select Destination"}
+            </Text>
+
+            <ScrollView>
+              {routes.map((r) => {
+                const stations = isSelectingOrigin ? r.origin : r.destination;
+                return (
+                  <Pressable
+                    key={r.id + (isSelectingOrigin ? "o" : "d")}
+                    onPress={() => {
+                      if (isSelectingOrigin) setFromLoc(stations);
+                      else setToLoc(stations);
+                      setModalVisible(false);
+                    }}
+                    style={{
+                      paddingVertical: 10,
+                      borderBottomWidth: 1,
+                      borderBottomColor: "#eee",
+                    }}
+                  >
+                    <Text style={{ fontSize: 15, color: theme.text }}>
+                      {stations}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={{
+                marginTop: 10,
+                backgroundColor: theme.green,
+                paddingVertical: 10,
+                borderRadius: 12,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "700" }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }

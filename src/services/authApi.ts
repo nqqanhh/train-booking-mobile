@@ -14,6 +14,11 @@ export type Me = {
   full_name?: string;
   role?: string;
 };
+export type UpdateProfileReq = {
+  fullName: string;
+  email: string;
+  phone: string;
+};
 export type OtpReq = { email: string };
 export type OtpVerify = { email: string; otp: string };
 export type ResetPass = {
@@ -32,10 +37,26 @@ export const postRegister = async (payload: RegisterReq) => {
 };
 
 export const getMe = async () => {
-  const { data } = await api.get<Me>("/profile/me");
-  return data;
+  try {
+    const { data } = await api.get("/profile/me");
+    console.log("me:", data?.profile);
+    return data?.profile ?? null;
+  } catch (e: any) {
+    if (e?.response?.status === 401) return null; // chưa đăng nhập / token hết hạn
+    throw e;
+  }
 };
 
+export const patchUpdateProfile = async (payload: UpdateProfileReq) => {
+  try {
+    const { data } = await api.patch("/profile/me", payload);
+    console.log("data:", data);
+    return data?.profile;
+  } catch (e: any) {
+    if (e?.response?.status === 401) return null; // chưa đăng nhập / token hết hạn
+    throw e;
+  }
+};
 export const postRefresh = async (refresh_token: string) => {
   const { data } = await api.post<AuthTokens>("/auth/refresh", {
     refresh_token,
@@ -44,8 +65,8 @@ export const postRefresh = async (refresh_token: string) => {
 };
 
 export const postLogout = async () => {
-  const { data } = await api.post("/auth/logout", {});
-  return data;
+  await localStorage.removeItem("tk_access");
+  await localStorage.removeItem("tk_refresh");
 };
 
 export const postRequestOtp = async (payload: OtpReq) => {
