@@ -1,55 +1,77 @@
 import {
   View,
   Text,
-  Image,
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Alert,
+  ActivityIndicator,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { useAuth } from "@/src/hooks/useAuth";
-import { getMe } from "@/src/services/authApi";
-const GREEN = "#3ac21fff";
-const GREEN_DARK = "#5CA33A";
-const BG = "#F6FAF6";
-const CARD = "#FFFFFF";
-const TEXT = "#0F172A";
-const SUB = "#919296ff";
-const PROFILE_CARD = "#bbbbbbff";
-const LINE = "#E8EEE8";
-const PersonalInfo = () => {
-  const { user, updateProfile } = useAuth();
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
+import {
+  getOnePassenger,
+  Passenger,
+  updatePassengerProfile,
+} from "@/src/services/userApi";
 
-  const [fullName, setFullName] = useState<any>(user?.full_name || "");
-  const [email, setEmail] = useState<any>(user?.email || "");
-  const [phone, setPhone] = useState<any>(user?.phone || "");
+export default function PassengerDetails() {
+  const { passengerId } = useLocalSearchParams<{ passengerId: string }>();
+  const [fullName, setFullName] = useState<any>("");
+  const [id_no, setIdNo] = useState<any>("");
+  const [dob, setDob] = useState<any>("");
+  const [phone, setPhone] = useState<any>("");
   const [saving, setSaving] = useState(false);
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-  const handleGoBack = async () => {
-    await router.push("/account");
-    console.log("router back");
+  const router = useRouter();
+  const id = Number(passengerId);
+
+  const fetchData = async () => {
+    const res = await getOnePassenger(id);
+    setFullName(res.full_name);
+    setIdNo(res.id_no);
+    setDob(res.dob);
+    setPhone(res.phone);
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleGoBack = () => {
+    router.back();
   };
 
   const onSubmit = async () => {
     try {
       setSaving(true);
-      await updateProfile(fullName.trim(), email.trim(), phone.trim());
-      Alert.alert("Success", "Profile updated");
-      router.replace("/(tabs)/profile");
-    } catch (error: any) {
-      console.log(error?.response?.data?.messsage || error?.message);
-      Alert.alert(
-        "Update failed",
-        error?.response?.data?.messsage || error?.message || "Error"
-      );
+      const payload: Passenger = {
+        fullName,
+        id_no,
+        dob,
+        phone,
+      };
+      await updatePassengerProfile(payload, id);
+      router.replace("/account/passengers");
+    } catch (e: any) {
+      console.log("update passenger error:", e);
     } finally {
       setSaving(false);
     }
   };
+  if (loading) {
+    return (
+      <View
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator />
+      </View>
+    );
+  }
   return (
     <View
       style={{
@@ -82,19 +104,8 @@ const PersonalInfo = () => {
           marginTop: 50,
         }}
       >
-        <Image
-          source={require("../../../assets/images/dummy_avt.png")}
-          style={{
-            width: 100,
-            height: 100,
-            borderRadius: 50,
-          }}
-        />
         <View style={{ gap: 3 }}>
           <Text style={{ fontSize: 26, fontWeight: 600 }}>{fullName}</Text>
-          <Text style={{ color: GREEN, textAlign: "center" }}>
-            Upload profile picture
-          </Text>
         </View>
         <View style={{ width: "100%", gap: 26 }}>
           <View>
@@ -111,20 +122,31 @@ const PersonalInfo = () => {
             <Text style={styles.inputLabel}>Email</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your Email"
-              value={email}
-              onChangeText={setEmail}
+              placeholder="Enter your id number"
+              value={id_no}
+              onChangeText={setIdNo}
               autoCapitalize="none"
               placeholderTextColor={"#999"}
             />
           </View>
           <View>
-            <Text style={styles.inputLabel}>Phone numbers </Text>
+            <Text style={styles.inputLabel}>Phone numbers</Text>
             <TextInput
               style={styles.input}
               placeholder="Enter your phone number"
               value={phone}
               onChangeText={setPhone}
+              autoCapitalize="none"
+              placeholderTextColor={"#999"}
+            />
+          </View>
+          <View>
+            <Text style={styles.inputLabel}>Date of Birth</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your DOB"
+              value={dob}
+              onChangeText={setDob}
               autoCapitalize="none"
               placeholderTextColor={"#999"}
             />
@@ -143,7 +165,7 @@ const PersonalInfo = () => {
       </View>
     </View>
   );
-};
+}
 const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
@@ -176,5 +198,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
-export default PersonalInfo;

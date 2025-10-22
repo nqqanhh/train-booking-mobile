@@ -133,11 +133,19 @@ export const getSeatMapByCarriage = async (carriageId: number) => {
 };
 
 //
+export const previewOrder = async (payload: {
+  trip_id: number;
+  items: Array<{ seat_code: string; passenger_id?: number }>;
+}) => {
+  const { data } = await api.post("/orders/preview", payload);
+  console.log("order-preview: ", data);
+  return data;
+};
 
 export const createOrder = async (payload: {
   user_id: number;
   items: Array<{
-    trip_idd: number;
+    trip_id: number;
     seat_code: string;
     price: number;
     passenger_id?: number;

@@ -6,6 +6,7 @@ import {
   Image,
   ImageBackground,
   Platform,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -13,7 +14,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import images from "../../assets/images";
 
 const BG = "#F6FAF6";
-const TRAINBG = "#bbbbbb69"
+const TRAINBG = "#bbbbbb69";
 const TEXT = "#0F172A";
 const LINE = "#E8EEE8";
 const PROFILE_CARD = "#BBBBBB";
@@ -34,7 +35,7 @@ export default function Account() {
         source={images.trainSubBg}
         resizeMode="cover"
         style={{
-          height: "20vh",
+          height: 160, // ⬅️ đổi từ "20vh"
           paddingTop: Platform.OS === "ios" ? 8 : 12,
           paddingHorizontal: 16,
           justifyContent: "flex-end",
@@ -45,8 +46,9 @@ export default function Account() {
           borderBottomRightRadius: 16,
         }}
       >
-        {/* overlay (tuỳ chọn) để chữ rõ hơn */}
+        {/* overlay để chữ rõ hơn, KHÔNG chặn touch */}
         <View
+          pointerEvents="none" // ⬅️ không chặn chạm
           style={{
             position: "absolute",
             left: 0,
@@ -111,6 +113,13 @@ export default function Account() {
           General
         </Text>
 
+        {/* Không bọc Pressable bên ngoài nữa, để Row tự handle onPress */}
+        <Row
+          icon="person"
+          label="Passenger Profiles"
+          onPress={() => router.push("/account/passengers")}
+        />
+
         <Row icon="lock-closed" label="Security" />
         <Row icon="ticket-outline" label="Voucher & Discount" />
         <Row icon="notifications-outline" label="Notification" />
@@ -145,14 +154,25 @@ export default function Account() {
   );
 }
 
-function Row({ icon, label }: { icon: any; label: string }) {
+// Row: tự nhận onPress, KHÔNG lồng thêm touchable bên ngoài
+function Row({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: any;
+  label: string;
+  onPress?: () => void;
+}) {
   return (
-    <TouchableOpacity
+    <Pressable
+      onPress={onPress}
+      hitSlop={8}
       style={{
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 12,
+        paddingVertical: 10,
         borderBottomWidth: 1,
         borderBottomColor: LINE,
       }}
@@ -162,6 +182,6 @@ function Row({ icon, label }: { icon: any; label: string }) {
         <Text style={{ color: TEXT }}>{label}</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color={TEXT} />
-    </TouchableOpacity>
+    </Pressable>
   );
 }

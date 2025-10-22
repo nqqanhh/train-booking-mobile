@@ -120,10 +120,10 @@ const styles = StyleSheet.create({
   ticketCard: {
     backgroundColor: theme.CARD,
     borderRadius: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 6,
     paddingTop: "7%",
-    gap: 9,
-    height: "35%",
+    // gap: 9,
+    // height: "35%",
   },
   eTrainLogo: {
     height: 40,

@@ -23,7 +23,7 @@ export default function Login() {
       headerImage={
         <Image
           source={require("@/assets/images/train_imgage.jpg")}
-          style={{ width: 400, height: 250 }}
+          style={{ width: "100%", height: "100%" }}
           resizeMode="cover"
         />
       }
