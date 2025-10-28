@@ -30,7 +30,7 @@ const PersonalInfo = () => {
   const router = useRouter();
 
   const handleGoBack = async () => {
-    await router.push("/account");
+    await router.push("/(tabs)/profile");
     console.log("router back");
   };
 

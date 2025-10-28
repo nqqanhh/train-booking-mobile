@@ -7,6 +7,11 @@ export type Passenger = {
   phone: string;
 };
 
+export type ChangePasswordReq = {
+  oldPass: string;
+  newPass: string;
+};
+
 const pickArray = (d: any) =>
   Array.isArray(d?.items)
     ? d.items
@@ -40,5 +45,11 @@ export const updatePassengerProfile = async (
 ) => {
   const { data } = await api.post(`/passenger-profile/update/${id}`, payload);
   console.log("updated passenger: ", data);
+  return data;
+};
+
+export const changePassword = async (payload: ChangePasswordReq) => {
+  const { data } = await api.patch("/profile/me/password", payload);
+  console.log("password changed!");
   return data;
 };

@@ -7,6 +7,7 @@ import {
   ImageBackground,
   Platform,
   Pressable,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -29,15 +30,14 @@ export default function Account() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+    <View style={{ flex: 1, backgroundColor: BG }}>
       {/* HEADER background image cover */}
       <ImageBackground
         source={images.trainSubBg}
         resizeMode="cover"
         style={{
-          height: 160, // ⬅️ đổi từ "20vh"
+          height: 160,
           paddingTop: Platform.OS === "ios" ? 8 : 12,
-          paddingHorizontal: 16,
           justifyContent: "flex-end",
           width: "100%",
         }}
@@ -66,6 +66,7 @@ export default function Account() {
             fontSize: 26,
             color: TEXT,
             marginBottom: 10,
+            paddingLeft:16
           }}
         >
           Account
@@ -108,7 +109,10 @@ export default function Account() {
       </TouchableOpacity>
 
       {/* Sections */}
-      <View style={{ paddingHorizontal: 16, gap: 16 }}>
+      <ScrollView
+        style={{ paddingHorizontal: 16 }}
+        contentContainerStyle={{ gap: 20 }}
+      >
         <Text style={{ fontWeight: "700", fontSize: 14, color: TEXT }}>
           General
         </Text>
@@ -120,7 +124,11 @@ export default function Account() {
           onPress={() => router.push("/account/passengers")}
         />
 
-        <Row icon="lock-closed" label="Security" />
+        <Row
+          icon="lock-closed"
+          label="Security"
+          onPress={() => router.push("/account/security")}
+        />
         <Row icon="ticket-outline" label="Voucher & Discount" />
         <Row icon="notifications-outline" label="Notification" />
 
@@ -149,8 +157,8 @@ export default function Account() {
           </View>
           <Ionicons name="chevron-forward" size={20} color="red" />
         </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      </ScrollView>
+    </View>
   );
 }
 

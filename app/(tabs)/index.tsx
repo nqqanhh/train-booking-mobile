@@ -9,7 +9,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View,
+  View, SafeAreaViewBase
 } from "react-native";
 
 import {
@@ -71,7 +71,15 @@ export default function HomeScreen() {
     const routeId = route.id;
     if (!routeId || isNaN(Number(routeId))) {
       alert("Không tìm thấy route hợp lệ (routeId null/NaN)");
-      return;
+      return (
+        <View>
+          <Text>
+            Không tìm thấy tuyến {fromLoc}
+            {"->"}
+            {toLoc}
+          </Text>
+        </View>
+      );
     }
     router.push({
       pathname: "/booking/trips",
@@ -80,10 +88,10 @@ export default function HomeScreen() {
         origin: fromLoc,
         destination: toLoc,
         routeId: String(routeId),
-        // date: toISO(depart),
-        // passengers: String(seats),
-        // roundtrip: String(!oneWay),
-        // return_date: !oneWay ? toISO(ret) : undefined,
+        date: toISO(depart),
+        passengers: String(seats),
+        roundtrip: String(!oneWay),
+        return_date: !oneWay ? toISO(ret) : undefined,
       },
     });
   };
