@@ -1,6 +1,7 @@
 import axios from "axios";
 const BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:9000/api";
+  process.env.EXPO_PUBLIC_API_BASE_URL ||
+  "https://train-booking-backend-93io.onrender.com";
 
 export const api = axios.create({
   baseURL: BASE_URL,
