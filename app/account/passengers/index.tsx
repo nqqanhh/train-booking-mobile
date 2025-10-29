@@ -18,6 +18,7 @@ import { useRouter, useFocusEffect } from "expo-router";
 import CreatePassengerModal, {
   Passenger as PassengerPayload,
 } from "./components/CreatePassengerModal";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PassengerScreen() {
   const [rows, setRows] = useState<any[]>([]);
@@ -136,7 +137,7 @@ export default function PassengerScreen() {
   // };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.headerWrapper}>
         <Pressable onPress={handleGoBack} hitSlop={10} style={styles.backBtn}>
@@ -220,7 +221,7 @@ export default function PassengerScreen() {
           passenger={null}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

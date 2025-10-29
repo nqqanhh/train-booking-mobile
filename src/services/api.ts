@@ -1,7 +1,9 @@
 import axios from "axios";
+// import * as dotenv from "dotenv";
+// dotenv.config();
 const BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ||
-  "https://train-booking-backend-93io.onrender.com";
+  // process.env.EXPO_PUBLIC_API_BASE_URL ||
+  "https://train-booking-backend-93io.onrender.com/api";
 
 export const api = axios.create({
   baseURL: BASE_URL,

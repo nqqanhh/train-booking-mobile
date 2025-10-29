@@ -11,6 +11,7 @@ import dayjs from "dayjs";
 import { getMyTickets } from "@/src/services/ticketsApi";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 const theme = {
   bg: "#F6FAF6",
   card: "#fff",
@@ -52,7 +53,7 @@ export default function MyTicketsScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg, padding: 12 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg, padding: 12 }}>
       {/* Tabs filter */}
       <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
         {(["all", "valid", "used", "refunded"] as const).map((s) => {
@@ -158,6 +159,6 @@ export default function MyTicketsScreen() {
           }}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }

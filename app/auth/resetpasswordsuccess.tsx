@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 const GREEN = "#3ac21fff";
 const GREEN_DARK = "#5CA33A";
 const BG = "#F6FAF6";
@@ -15,19 +16,19 @@ const ResetPasswordSuccess = () => {
     router.push("/auth/login");
   };
   return (
-    <View
+    <SafeAreaView
       style={{
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh",
+        height: "100%",
         gap: 60,
         paddingHorizontal: 13,
       }}
     >
       <View
         style={{
-          borderRadius: "50%",
+          borderRadius: "10%",
           backgroundColor: "#7cebaeff",
           width: "50%",
           height: "20%",
@@ -50,7 +51,7 @@ const ResetPasswordSuccess = () => {
           marginTop: 30,
           backgroundColor: GREEN,
           width: "100%",
-          height: "5vh",
+          height: "20%",
           justifyContent: "center",
           borderRadius: 8,
         }}
@@ -60,7 +61,7 @@ const ResetPasswordSuccess = () => {
           Go back to Login
         </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 

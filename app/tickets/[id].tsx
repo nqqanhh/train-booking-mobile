@@ -127,7 +127,6 @@ export default function TicketDetailsScreen() {
       }}
     >
       <View style={{ padding: 30 }}>
-        {" "}
         <Text>- Bấm vào vé để tải về -</Text>
       </View>
 
