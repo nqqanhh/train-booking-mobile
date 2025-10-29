@@ -11,10 +11,8 @@ import {
   RefreshControl,
   StyleSheet,
 } from "react-native";
-import {
-  fetchAllTrainArticles,
-  TrainArticle,
-} from "@/src/services/trainNewsApi";
+import { fetchAllArticals, TrainArticle } from "@/src/services/newsApi";
+import { theme } from "@/assets/colors";
 
 const PAGE_SIZE = 20;
 
@@ -43,7 +41,7 @@ export default function ExploreClientPaging() {
     async (fresh = false) => {
       setLoading(true);
       try {
-        const res = await fetchAllTrainArticles({
+        const res = await fetchAllArticals({
           q: q.trim() || undefined,
           fresh: fresh ? 1 : 0,
         });
@@ -118,7 +116,8 @@ export default function ExploreClientPaging() {
       {/* Search */}
       <View style={styles.searchBar}>
         <TextInput
-          placeholder="Tìm: tàu hỏa, đường sắt, ga…"
+          placeholder="Tìm"
+          placeholderTextColor={theme.text}
           value={q}
           onChangeText={setQ}
           onSubmitEditing={onSearch}
