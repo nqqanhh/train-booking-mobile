@@ -88,7 +88,7 @@ export default function ResetPasswordScreen() {
             <Text style={styles.buttonText}>Confirm</Text>
           </TouchableOpacity>
         </View>
-      </View>{" "}
+      </View>
     </View>
   );
 }

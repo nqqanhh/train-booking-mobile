@@ -18,6 +18,11 @@ export default function NewsDetail() {
     })();
   }, [id]);
 
-  if (!url) return <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator /></View>;
+  if (!url)
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator />
+      </View>
+    );
   return <WebView source={{ uri: url }} />;
 }
