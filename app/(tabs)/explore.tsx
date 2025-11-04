@@ -11,55 +11,50 @@ import {
   RefreshControl,
   StyleSheet,
 } from "react-native";
-import { fetchAllArticals, TrainArticle } from "@/src/services/newsApi";
+// Đảm bảo tên import đúng với file service của bạn:
+import {
+  fetchAllArticals as fetchAllArticles,
+  TrainArticle,
+} from "@/src/services/newsApi";
 import { theme } from "@/assets/colors";
+import { useRouter } from "expo-router";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 6;
 
 export default function ExploreClientPaging() {
   const [q, setQ] = useState("");
   const [all, setAll] = useState<TrainArticle[]>([]);
   const [visible, setVisible] = useState<TrainArticle[]>([]);
-  const [cursor, setCursor] = useState(0); // số item đã show
+  const [cursor, setCursor] = useState(0);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const mountSlice = useCallback(
-    (reset = false) => {
-      setVisible((prev) => {
-        const start = reset ? 0 : prev.length;
-        const end = Math.min(start + PAGE_SIZE, all.length);
-        return reset ? all.slice(0, end) : [...prev, ...all.slice(start, end)];
-      });
-      setCursor((v) => Math.min((reset ? 0 : v) + PAGE_SIZE, all.length));
-    },
-    [all]
-  );
-
+  const router = useRouter();
   const loadAll = useCallback(
     async (fresh = false) => {
       setLoading(true);
       try {
-        const res = await fetchAllArticals({
+        const res = await fetchAllArticles({
           q: q.trim() || undefined,
           fresh: fresh ? 1 : 0,
         });
-        setAll(res.items || []);
-        setVisible([]); // reset trước
-        setCursor(0);
-        // mount trang đầu
-        setTimeout(() => mountSlice(true), 0);
+        const items = res.items || [];
+        // CẮT TRANG ĐẦU TRỰC TIẾP TỪ items (tránh race state)
+        const first = items.slice(0, PAGE_SIZE);
+        setAll(items);
+        setVisible(first);
+        setCursor(first.length);
       } finally {
         setLoading(false);
       }
     },
-    [q, mountSlice]
+    [q]
   );
 
   useEffect(() => {
     loadAll();
-  }, []); // first load
+  }, [loadAll]);
 
   const onSearch = () => loadAll(true);
 
@@ -72,18 +67,28 @@ export default function ExploreClientPaging() {
     }
   };
 
-  const onEndReached = () => {
+  const loadMore = useCallback(() => {
     if (loading || loadingMore) return;
     if (cursor >= all.length) return;
     setLoadingMore(true);
-    setTimeout(() => {
-      mountSlice(false);
-      setLoadingMore(false);
-    }, 0);
+    // Cắt thêm 1 trang từ mảng all
+    const next = all.slice(cursor, cursor + PAGE_SIZE);
+    setVisible((prev) => [...prev, ...next]);
+    setCursor((v) => v + next.length);
+    setLoadingMore(false);
+  }, [all, cursor, loading, loadingMore]);
+
+  const onEndReached = () => {
+    // Guard: nếu tổng hiện tại < PAGE_SIZE thì khỏi loadMore
+    if (visible.length < PAGE_SIZE) return;
+    loadMore();
   };
 
   const renderItem = ({ item }: { item: TrainArticle }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/news/${item.id}`)}
+    >
       <View style={styles.thumb}>
         {item.image ? (
           <Image
@@ -108,7 +113,7 @@ export default function ExploreClientPaging() {
             : ""}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -143,12 +148,16 @@ export default function ExploreClientPaging() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          onEndReachedThreshold={0.3}
+          onEndReachedThreshold={0.15} // giảm để bắn ít hơn
           onEndReached={onEndReached}
           ListFooterComponent={
             loadingMore ? (
               <View style={{ paddingVertical: 12 }}>
                 <ActivityIndicator />
+              </View>
+            ) : cursor >= all.length && visible.length > 0 ? (
+              <View style={{ paddingVertical: 12, alignItems: "center" }}>
+                <Text>Hết bài</Text>
               </View>
             ) : null
           }
@@ -157,6 +166,7 @@ export default function ExploreClientPaging() {
               <Text>Không có bài.</Text>
             </View>
           }
+          showsVerticalScrollIndicator
         />
       )}
     </SafeAreaView>

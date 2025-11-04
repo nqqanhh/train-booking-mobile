@@ -9,7 +9,7 @@ export type TrainArticle = {
   image: string | null;
   published_at: string | null;
 };
-const BASE = "https://train-booking-backend-93io.onrender.com/rss";
+const BASE = "https://train-booking-backend-6zox.onrender.com/rss";
 
 // export async function fetchTrainArticles(params?: {
 //   q?: string;

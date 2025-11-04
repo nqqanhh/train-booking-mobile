@@ -9,7 +9,8 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View, SafeAreaViewBase
+  View, SafeAreaViewBase,
+  StyleSheet
 } from "react-native";
 
 import {
@@ -108,7 +109,7 @@ export default function HomeScreen() {
       {/* Header “Welcome back” kiểu thẻ mờ */}
       <View
         style={{
-          height: 110,
+          height: "35%",
           backgroundColor: theme.green,
           borderBottomLeftRadius: 18,
           borderBottomRightRadius: 18,

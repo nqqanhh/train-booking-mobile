@@ -23,19 +23,19 @@ const pickArray = (d: any) =>
 
 export const getPassengerProfiles = async () => {
   const { data } = await api.get("/passenger-profile/");
-  console.log("passengers: ", data.passengers);
+  // console.log("passengers: ", data.passengers);
   return pickArray(data.passengers);
 };
 
 export const getOnePassenger = async (id: number) => {
   const { data } = await api.get(`/passenger-profile/${id}`);
-  console.log("passenger: ", data.passenger);
+  // console.log("passenger: ", data.passenger);
   return data.passenger;
 };
 
 export const createPassengerProfile = async (payload: Passenger) => {
   const { data } = await api.post("/passenger-profile/create", payload);
-  console.log("passenger profile created: ", data);
+  // console.log("passenger profile created: ", data);
   return data;
 };
 
@@ -44,12 +44,12 @@ export const updatePassengerProfile = async (
   id: number
 ) => {
   const { data } = await api.post(`/passenger-profile/update/${id}`, payload);
-  console.log("updated passenger: ", data);
+  // console.log("updated passenger: ", data);
   return data;
 };
 
 export const changePassword = async (payload: ChangePasswordReq) => {
   const { data } = await api.patch("/profile/me/password", payload);
-  console.log("password changed!");
+  // console.log("password changed!");
   return data;
 };

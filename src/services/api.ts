@@ -3,8 +3,8 @@ import axios from "axios";
 // dotenv.config();
 const BASE_URL =
   // process.env.EXPO_PUBLIC_API_BASE_URL ||
-  "https://train-booking-backend-93io.onrender.com/api";
-
+  "https://train-booking-backend-6zox.onrender.com/api";
+//http://localhost:9000/api
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: { "Content-Type": "application/json" },

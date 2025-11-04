@@ -12,11 +12,20 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { api } from "../../../src/services/api";
-import { previewOrder } from "@/src/services/bookingApi";
+import WebView from "react-native-webview";
+import { api } from "@/src/services/api";
+import {
+  createOrder,
+  paypalCapture,
+  paypalCreate,
+  previewOrder,
+} from "@/src/services/bookingApi";
 import PreviewOrderModal, {
   OrderPreview,
 } from "./components/PreviewOrderModal";
+import { AuthProvider } from "@/src/context/AuthContext";
+import { useAuth } from "@/src/hooks/useAuth";
+
 type Trip = {
   id: number;
   route_id: number;
@@ -25,7 +34,6 @@ type Trip = {
   vehicle_no: string;
   status: string;
 };
-
 type RouteInfo = { id: number; origin: string; destination: string };
 
 type TripSeat = {
@@ -58,7 +66,6 @@ type SeatMerged = {
 };
 
 type Layout = { rows: number; cols: number };
-
 type CarriageVM = {
   id: number;
   name?: string;
@@ -67,6 +74,7 @@ type CarriageVM = {
   layout: Layout;
   seats: SeatMerged[];
 };
+type PassengerOption = { id: number; name: string; phone?: string };
 
 const theme = {
   green: "#7AC943",
@@ -83,7 +91,6 @@ const theme = {
   white: "#fff",
 };
 
-// ---------------- helpers (port từ admin) ----------------
 function normalizeSeat(raw: any): SeatMerged {
   const row = Number(raw.row ?? raw.pos_row ?? 0);
   const col = Number(raw.col ?? raw.pos_col ?? 0);
@@ -127,47 +134,52 @@ function normalizeSeat(raw: any): SeatMerged {
 
 const hhmm = (s?: string) => String(s || "").slice(11, 16);
 
-// ---------------- screen ----------------
 export default function SelectSeatScreen() {
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
-  const [trip, setTrip] = useState<any>("");
+  const [trip, setTrip] = useState<Trip | null>(null);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [carriages, setCarriages] = useState<CarriageVM[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [picked, setPicked] = useState<string[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+
+  // preview + chọn passenger
+  const [openPreviewModal, setOpenPreviewModal] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [preview, setPreview] = useState<OrderPreview | null>(null);
+  const [seatAssignments, setSeatAssignments] = useState<
+    Record<string, PassengerOption | null>
+  >({});
+
+  // PayPal webview
+  const [webVisible, setWebVisible] = useState(false);
+  const [approvalUrl, setApprovalUrl] = useState<string | null>(null);
+  const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<number | null>(null);
 
   const current = carriages[activeIdx];
 
-  // 1) fetch trip + route for header
   const loadTripHeader = useCallback(async () => {
     const { data } = await api.get(`/trips/${Number(tripId)}`);
-    const t: Trip = data?.trip || data; // tuỳ backend
+    const t: Trip = data?.trip || data;
     setTrip(t);
 
-    try {
-      if (t?.route_id) {
-        const { data: r } = await api.get(`/routes/${t.route_id}`);
-        setRouteInfo(r?.route || r);
-      }
-    } catch {
-      // route optional
+    if (t?.route_id) {
+      try {
+        const r = await api.get(`/routes/${t.route_id}`);
+        setRouteInfo(r.data?.route || r.data);
+      } catch {}
     }
   }, [tripId]);
 
-  // 2) fetch carriages by trip
   const loadCarriages = useCallback(async () => {
     const { data } = await api.get(
       `/carriages/trips/${Number(tripId)}/carriages`
     );
     const list = Array.isArray(data?.carriages) ? data.carriages : data || [];
-    // tạm set layout rỗng, sẽ fill sau khi merge
     const mapped: CarriageVM[] = list.map((c: any) => ({
       id: Number(c.id),
       name: c.name || `Coach ${c.carriage_no ?? ""}`,
@@ -180,53 +192,31 @@ export default function SelectSeatScreen() {
     setActiveIdx(0);
   }, [tripId]);
 
-  // 3) load per-carriage (trip seats + template seats), then merge
   const loadCarriageDetail = useCallback(async (car: CarriageVM) => {
     const [tripSeatsRes, tplSeatsRes] = await Promise.all([
-      api.get(`/carriages/${car.id}/seatmap`), // { seats: TripSeat[] }
-      api.get(`/seat-templates/${car.seat_template_id}/seats`), // { template, seats: TemplateSeat[] }
+      api.get(`/carriages/${car.id}/seatmap`),
+      api.get(`/seat-templates/${car.seat_template_id}/seats`),
     ]);
-
     const tripSeats: TripSeat[] = Array.isArray(tripSeatsRes.data?.seats)
       ? tripSeatsRes.data.seats
       : [];
-
     const tpl = tplSeatsRes.data?.template;
     const templateSeats: TemplateSeat[] = Array.isArray(tplSeatsRes.data?.seats)
       ? tplSeatsRes.data.seats
       : [];
-
     const rows = Number(tpl?.meta_json?.rows || 0);
     const cols = Number(tpl?.meta_json?.cols || 0);
-
-    // map trip seats theo seat_code
     const tMap = new Map(tripSeats.map((s) => [String(s.seat_code), s]));
-    const mergedRaw = templateSeats.map((ts) => {
-      const tsNorm = {
+    const mergedNorm = templateSeats
+      .map((ts) => ({
         seat_code: String(ts.seat_code),
         pos_row: Number(ts.pos_row || 0),
         pos_col: Number(ts.pos_col || 0),
         seat_class: (ts.seat_class || "standard").toLowerCase(),
         base_price: Number(ts.base_price || 0),
-      };
-      const t = tMap.get(tsNorm.seat_code) || {};
-      return {
-        seat_code: tsNorm.seat_code,
-        pos_row: tsNorm.pos_row,
-        pos_col: tsNorm.pos_col,
-        seat_class: tsNorm.seat_class,
-        base_price: tsNorm.base_price,
-        sold: t.sold,
-        status: t.status ?? (t as any).state ?? (t as any).seat_status,
-        status_id: (t as any)?.status_id,
-        order_item_id: t.order_item_id,
-        sold_at: t.sold_at,
-        class: (t as any)?.class,
-        price: (t as any)?.price,
-      };
-    });
-
-    const mergedNorm = mergedRaw.map(normalizeSeat);
+        ...(tMap.get(String(ts.seat_code)) || {}),
+      }))
+      .map(normalizeSeat);
 
     setCarriages((prev) =>
       prev.map((x) =>
@@ -237,7 +227,6 @@ export default function SelectSeatScreen() {
     );
   }, []);
 
-  // boot
   useEffect(() => {
     (async () => {
       try {
@@ -251,99 +240,23 @@ export default function SelectSeatScreen() {
       }
     })();
   }, [loadTripHeader, loadCarriages]);
-  // }, [loadCarriages]);
 
-  // lazy-load chi tiết toa khi đổi tab/toa
   useEffect(() => {
     const car = carriages[activeIdx];
     if (!car) return;
-    if (car.seats.length && car.layout.rows && car.layout.cols) return; // đã có
+    if (car.seats.length && car.layout.rows && car.layout.cols) return;
     (async () => {
       try {
         await loadCarriageDetail(car);
       } catch (e: any) {
-        Alert.alert(
-          "Error",
-          e?.response?.data?.message || "Load seatmap failed"
-        );
+        // Alert.alert(
+        //   "Error",
+        //   e?.response?.data?.message || "Load seatmap failed"
+        // );
       }
     })();
   }, [activeIdx, carriages, loadCarriageDetail]);
 
-  const openPreview = async () => {
-    setOpenModal(true);
-    setLoadingPreview(true);
-    try {
-      const items = picked.map((code) => ({
-        seat_code: code,
-        passenger_id: 2,
-      }));
-      const data = await previewOrder({ trip_id: Number(tripId), items });
-      // Chuẩn hóa về OrderPreview
-      const normalized: OrderPreview = {
-        trip_id: `#${data?.trip_id}`,
-        trip_name: `${routeInfo?.origin}->${routeInfo?.destination}` || "N/A",
-        departure_time: data?.departure_time || "N/A",
-        seats: (data?.items ?? []).map((it: any) => ({
-          seat_code: it.seat_code,
-          price: it.price,
-          passenger_name: it?.passenger_name || "Nguyen Quoc Anh",
-        })),
-        // subtotal: data?.subtotal ?? data?.total_without_fee,
-        // fee: data?.fee ?? 0,
-        total: data?.total_amount,
-      };
-      setPreview(normalized);
-    } catch (e) {
-      console.log("preview error", e);
-      setPreview(null);
-    } finally {
-      setLoadingPreview(false);
-    }
-  };
-
-  // const confirmOrder = async () => {
-  //   // Gọi API create order… rồi đóng modal
-  //   setOpen(false);
-  // };
-
-  const onConfirm = async () => {
-    try {
-      const items = picked.map((code) => ({
-        seat_code: code,
-        //passenger_id: <coming soon>
-      }));
-      const res = await previewOrder({
-        trip_id: Number(tripId),
-        items,
-      });
-
-      Alert.alert(
-        "Preview order",
-        `Trip #${res.trip_id}\nSeats: ${items
-          .map((i) => i.seat_code)
-          .join(", ")}\nTotal: $${Number(res.total_amount).toFixed(2)}`
-      );
-      console.log(
-        "Preview order",
-        `Trip #${res.trip_id}\nSeats: ${items
-          .map((i) => i.seat_code)
-          .join(", ")}\nTotal: $${Number(res.total_amount).toFixed(2)}`
-      );
-    } catch (e: any) {
-      console.log(
-        "error previewing order:",
-        e?.response?.data?.detail || e?.response?.data?.message || e?.message
-      );
-      Alert.alert(
-        "Preview failed",
-        e?.response?.data?.detail ||
-          e?.response?.data?.message ||
-          "Cannot preview order"
-      );
-    }
-  };
-  // chọn ghế
   const seatByCode = useMemo(() => {
     const m = new Map<string, SeatMerged>();
     (current?.seats || []).forEach((s) => m.set(s.seat_code, s));
@@ -356,6 +269,112 @@ export default function SelectSeatScreen() {
     setPicked((prev) =>
       prev.includes(code) ? prev.filter((x) => x !== code) : [...prev, code]
     );
+  };
+
+  // ==== PREVIEW ====
+  const openPreview = async () => {
+    if (!picked.length) return;
+    setOpenPreviewModal(true);
+    setLoadingPreview(true);
+    try {
+      const items = picked.map((code) => ({
+        seat_code: code,
+        passenger_id: seatAssignments[code]?.id,
+      }));
+      const data = await previewOrder({ trip_id: Number(tripId), items });
+      const normalized: OrderPreview = {
+        trip_id: `#${data?.trip_id ?? trip?.id ?? ""}`,
+        trip_name: routeInfo
+          ? `${routeInfo.origin} → ${routeInfo.destination}`
+          : trip
+          ? `Route #${trip.route_id}`
+          : "N/A",
+        departure_time: trip?.departure_time ?? "N/A",
+        seats: (data?.items ?? []).map((it: any) => ({
+          seat_code: it.seat_code,
+          price: it.price,
+          passenger_id: it.passenger_id,
+          passenger_name: it.passenger_name,
+        })),
+        total: data?.total_amount,
+      };
+      setPreview(normalized);
+    } catch (e: any) {
+      setPreview(null);
+      Alert.alert(
+        "Preview failed",
+        e?.response?.data?.detail ||
+          e?.response?.data?.message ||
+          "Cannot preview order"
+      );
+    } finally {
+      setLoadingPreview(false);
+    }
+  };
+
+  // ==== PAYMENT ====
+  const startPayment = async (
+    itemsWithPassenger: Array<{
+      trip_id: number;
+      seat_code: string;
+      passenger_id: number;
+    }>
+  ) => {
+    console.log("Start payment 1");
+    try {
+      // 1) Tạo order pending
+      const created = await createOrder({
+        user_id: Number(user?.id), // TODO: lấy từ auth context
+        items: itemsWithPassenger,
+      });
+      console.log("order id", created.order_id);
+      setOrderId(created.order_id);
+
+      // 2) PayPal create
+      const { approval_url, paypal_order_id } = await paypalCreate({
+        order_id: created.order_id,
+        return_url: "https://example.com/return",
+        cancel_url: "https://example.com/cancel",
+      });
+      setPaypalOrderId(paypal_order_id);
+      console.log("paypalCreate");
+      setApprovalUrl(approval_url);
+      setWebVisible(true);
+    } catch (e: any) {
+      console.log("error", e);
+      Alert.alert(
+        "Payment error",
+        e?.response?.data?.message || e?.message || "Create payment failed"
+      );
+    }
+  };
+
+  const onNavChange = async (navState: any) => {
+    const url: string = navState.url || "";
+    if (!paypalOrderId || !orderId) return;
+
+    // Tùy back-end config return_url/cancel_url mà bắt pattern tương ứng
+    if (url.includes("example.com/return")) {
+      try {
+        console.log({ order_id: orderId, paypal_order_id: paypalOrderId });
+        await paypalCapture({
+          order_id: orderId,
+          paypal_order_id: paypalOrderId,
+        });
+        setWebVisible(false);
+        router.push("/booking/paymentsuccess");
+
+        // TODO: điều hướng sang My Tickets hoặc đâu đó
+      } catch (e: any) {
+        const msg =
+          e?.response?.data?.detail || e?.response?.data?.message || e?.message;
+        Alert.alert("Lỗi hậu thanh toán", msg);
+        console.log("error:", e);
+      }
+    } else if (url.includes("example.com/cancel")) {
+      setWebVisible(false);
+      Alert.alert("Cancelled", "Bạn đã huỷ thanh toán PayPal");
+    }
   };
 
   const total = picked.reduce(
@@ -423,7 +442,6 @@ export default function SelectSeatScreen() {
 
       {/* Tabs toa */}
       <View
-        // showsHorizontalScrollIndicator={false}
         style={{
           paddingHorizontal: 6,
           flexDirection: "row",
@@ -496,65 +514,147 @@ export default function SelectSeatScreen() {
       </ScrollView>
 
       {/* Bottom bar */}
-      <View
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 10,
-          paddingBottom: 18,
-          backgroundColor: theme.white,
-          borderTopWidth: 1,
-          borderTopColor: theme.line,
-        }}
-      >
+      {!user ? (
         <View
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 10,
+            paddingHorizontal: 16,
+            paddingTop: 10,
+            paddingBottom: 18,
+            backgroundColor: theme.white,
+            borderTopWidth: 1,
+            borderTopColor: theme.line,
           }}
         >
-          <Text style={{ color: theme.sub }}>Seat selected:</Text>
-          <Text style={{ fontWeight: "700", color: theme.text }}>
-            {picked.length ? picked.join(", ") : "—"}
+          <Text style={{ textAlign: "center" }}>
+            Please login to booking your ticket
           </Text>
         </View>
-        <Pressable
-          disabled={!picked.length}
-          onPress={() => {
-            openPreview();
-            // setModalVisible(true);
-            Alert.alert(
-              "Confirm",
-              `Pay $${total.toFixed(2)} for ${picked.length} seats`
-            );
-          }}
+      ) : (
+        <View
           style={{
-            backgroundColor: picked.length ? theme.green : "#B0B8A8",
-            paddingVertical: 14,
-            borderRadius: 14,
-            alignItems: "center",
-            justifyContent: "center",
-            shadowColor: "#000",
-            shadowOpacity: 0.08,
-            shadowOffset: { width: 0, height: 2 },
-            shadowRadius: 4,
-            elevation: 2,
+            paddingHorizontal: 16,
+            paddingTop: 10,
+            paddingBottom: 18,
+            backgroundColor: theme.white,
+            borderTopWidth: 1,
+            borderTopColor: theme.line,
           }}
         >
-          <Text style={{ color: theme.white, fontWeight: "700" }}>
-            {picked.length ? `Confirm • $${total.toFixed(2)}` : "Confirm"}
-          </Text>
-        </Pressable>
-        <PreviewOrderModal
-          visible={openModal}
-          onCloseModal={() => setOpenModal(false)}
-          onConfirm={() => console.log("confirm")}
-          order={preview}
-          loading={loadingPreview}
-          title="Preview order"
-        />
-      </View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+            }}
+          >
+            <Text style={{ color: theme.sub }}>Seat selected:</Text>
+            <Text style={{ fontWeight: "700", color: theme.text }}>
+              {picked.length ? picked.join(", ") : "—"}
+            </Text>
+          </View>
+
+          <View style={{ gap: 10 }}>
+            <Pressable
+              disabled={!picked.length}
+              onPress={openPreview}
+              style={{
+                backgroundColor: picked.length ? theme.green : "#B0B8A8",
+                paddingVertical: 14,
+                borderRadius: 14,
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: "#000",
+                shadowOpacity: 0.08,
+                shadowOffset: { width: 0, height: 2 },
+                shadowRadius: 4,
+                elevation: 2,
+              }}
+            >
+              <Text style={{ color: theme.white, fontWeight: "700" }}>
+                {picked.length ? `Preview • $${total.toFixed(2)}` : "Preview"}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              disabled={!picked.length}
+              onPress={openPreview} // bắt buộc đi qua preview để chọn passenger
+              style={{
+                backgroundColor: picked.length ? theme.green : "#B0B8A8",
+                paddingVertical: 14,
+                borderRadius: 14,
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: "#000",
+                shadowOpacity: 0.08,
+                shadowOffset: { width: 0, height: 2 },
+                shadowRadius: 4,
+                elevation: 2,
+              }}
+            >
+              <Text style={{ color: theme.white, fontWeight: "700" }}>
+                {picked.length
+                  ? `Pay with PayPal • $${total.toFixed(2)}`
+                  : "Pay"}
+              </Text>
+            </Pressable>
+          </View>
+
+          <PreviewOrderModal
+            visible={openPreviewModal}
+            onCloseModal={() => setOpenPreviewModal(false)}
+            loading={loadingPreview}
+            order={preview}
+            title="Preview order"
+            onConfirm={(assigns) => {
+              setSeatAssignments(assigns);
+              const missing = picked.filter((code) => !assigns[code]?.id);
+              if (missing.length) {
+                Alert.alert(
+                  "Thiếu hành khách",
+                  `Vui lòng chọn hành khách cho ghế: ${missing.join(", ")}`
+                );
+                return;
+              }
+              const items = picked.map((code) => ({
+                trip_id: Number(tripId),
+                seat_code: code,
+                passenger_id: assigns[code]!.id,
+              }));
+              setOpenPreviewModal(false);
+              startPayment(items);
+            }}
+          />
+        </View>
+      )}
+
+      {/* WebView PayPal */}
+      {webVisible && approvalUrl ? (
+        <View
+          style={{ position: "absolute", inset: 0, backgroundColor: "#fff" }}
+        >
+          <WebView
+            source={{ uri: approvalUrl }}
+            onNavigationStateChange={onNavChange}
+            startInLoadingState
+            renderLoading={() => (
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <ActivityIndicator size="large" color={theme.green} />
+                <Text style={{ marginTop: 8, color: theme.sub }}>
+                  Đang mở PayPal…
+                </Text>
+              </View>
+            )}
+          />
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -562,7 +662,7 @@ export default function SelectSeatScreen() {
 // ---------- Pieces ----------
 function CabinBoxFixed({ children }: { children: React.ReactNode }) {
   const { width } = useWindowDimensions();
-  const cabinWidth = Math.min(width * 0.7, 360); // 70% màn, tối đa 360
+  const cabinWidth = Math.min(width * 0.7, 360);
   return (
     <View
       style={{
@@ -660,10 +760,8 @@ function SeatGridFixed({
         );
         continue;
       }
-
       const isSel = selected.includes(seat.seat_code);
       const sold = seat.sold;
-
       line.push(
         <Pressable
           key={`${r}-${c}`}

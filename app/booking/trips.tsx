@@ -119,7 +119,7 @@ export default function TripsListScreen() {
     (async () => {
       const route = await getRouteInfo();
       if (route) {
-        console.log("Route info:", route);
+        // console.log("Route info:", route);
         setRoute(route);
         // nếu muốn hiển thị thêm thông tin tuyến, có thể lưu vào state và render ở UI
       } else {

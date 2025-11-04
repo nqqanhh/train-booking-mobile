@@ -47,7 +47,7 @@ export default function MyTicketsScreen() {
   if (!user) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <Text>Vui lòng đăng nhập để xem vé.</Text>
+        <Text>Please login to see your tickets.</Text>
       </View>
     );
   }

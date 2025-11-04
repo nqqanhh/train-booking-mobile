@@ -24,7 +24,7 @@ const pickArray = (d: any) =>
 
 export const getRoutes = async () => {
   const { data } = await api.get("/routes");
-  console.log("[/routes]", data);
+  // console.log("[/routes]", data);
   return pickArray(data);
 };
 
@@ -35,7 +35,6 @@ export const getRouteByOriginDestination = async (
   const { data } = await api.get("/routes/one", {
     params: { origin, destination },
   });
-  console.log("[/routes search]", data?.route);
   return data?.route || null;
 };
 export const getRouteIdByOriginDestination = async (
@@ -45,19 +44,18 @@ export const getRouteIdByOriginDestination = async (
   const { data } = await api.get("/routes/one", {
     params: { origin, destination },
   });
-  console.log("[/routes search]", data);
-  console.log("id", data?.route.id || "NaN");
+
   return data?.route.id || null;
 };
 
 export const getRouteById = async (id: number) => {
   const { data } = await api.get("/routes/" + id);
-  console.log("[/routes/:id]", data);
+  // console.log("[/routes/:id]", data);
   return data?.route || null;
 };
 
 export const getTripsByDate = async (routeId: number, dateISO: string) => {
-  console.log("[bookingApi] getTripsByDate params", { routeId, dateISO });
+  // console.log("[bookingApi] getTripsByDate params", { routeId, dateISO });
   const { data } = await api.get("/trips/list", {
     params: {
       route_id: routeId,
@@ -67,7 +65,7 @@ export const getTripsByDate = async (routeId: number, dateISO: string) => {
       offset: 0,
     },
   });
-  console.log("[/trips raw]", data);
+  // console.log("[/trips raw]", data);
 
   const list = pickArray(data.rows);
 
@@ -80,7 +78,7 @@ export const getCarriages = async (tripId: number) => {
 
 export const getSeatMapByCarriage = async (carriageId: number) => {
   const { data } = await api.get(`/carriages/${carriageId}/seatmap`);
-  console.log("[/seatmap raw]", data);
+  // console.log("[/seatmap raw]", data);
 
   // chấp nhận mọi kiểu backend có thể trả: {layout, seats} hoặc {template:{meta_json}, tripSeats:[]}
   let layout = data?.layout ?? data?.template?.meta_json ?? data?.meta_json;
@@ -132,44 +130,42 @@ export const getSeatMapByCarriage = async (carriageId: number) => {
   return { layout, seats };
 };
 
-//
+/** Preview order — phải là POST (GET không có body) */
 export const previewOrder = async (payload: {
   trip_id: number;
   items: Array<{ seat_code: string; passenger_id?: number }>;
 }) => {
   const { data } = await api.post("/orders/preview", payload);
-  console.log("order-preview: ", data);
-  return data;
+  return data; // { trip_id, items:[{seat_code, price, ...}], total_amount, ... }
 };
 
+/** Create order (pending) */
 export const createOrder = async (payload: {
   user_id: number;
-  items: Array<{
-    trip_id: number;
-    seat_code: string;
-    price: number;
-    passenger_id?: number;
-  }>;
+  items: Array<{ trip_id: number; seat_code: string; passenger_id?: number }>;
 }) => {
   const { data } = await api.post("/orders", payload);
-  return data;
+  return data; // { order_id, total_amount, items: [...] }
 };
 
+/** PayPal: create (lấy approval_url, paypal_order_id) */
 export const paypalCreate = async (payload: {
   order_id: number;
   return_url: string;
   cancel_url: string;
 }) => {
-  const { data } = await api.post("/payments/paypal/create", payload);
-  return data;
+  const { data } = await api.post("/payments/paypal/create-order", payload);
+  return data; // { approval_url, paypal_order_id }
 };
 
+/** PayPal: capture (khi user đã approve) */
 export const paypalCapture = async (payload: {
   order_id: number;
   paypal_order_id: string;
 }) => {
-  const { data } = await api.post("payyments/paypal/capture", payload);
-  return data;
+  const { data } = await api.post("/payments/paypal/capture", payload);
+  console.log("capture: ", data);
+  return data; // { message: 'captured', ... }
 };
 
 export async function getTripSeatMapClient(tripId: number) {
@@ -178,6 +174,6 @@ export async function getTripSeatMapClient(tripId: number) {
   const d = res?.data;
   const seatmap = (d?.carriages && d) || (d?.data?.carriages && d.data) || d; // fallback
   // log để chắc chắn
-  console.log("[svc seatmap keys]", Object.keys(seatmap || {}));
+  // console.log("[svc seatmap keys]", Object.keys(seatmap || {}));
   return seatmap;
 }

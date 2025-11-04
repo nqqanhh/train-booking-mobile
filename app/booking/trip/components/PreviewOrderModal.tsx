@@ -1,15 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
+// app/(booking)/trip/components/PreviewOrderModal.tsx
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   View,
   Text,
   Pressable,
   StyleSheet,
-  Platform,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Autocomplete from "react-native-autocomplete-input"; 
+import Autocomplete from "react-native-autocomplete-input";
 import { getPassengerProfiles } from "@/src/services/userApi";
 
 export type OrderPreview = {
@@ -30,7 +32,7 @@ type PassengerOption = { id: number; name: string; phone?: string };
 type Props = {
   visible: boolean;
   onCloseModal: () => void;
-  onConfirm?: (assignments: Record<string, PassengerOption | null>) => void; 
+  onConfirm?: (assignments: Record<string, PassengerOption | null>) => void;
   title?: string;
   order?: OrderPreview | null;
   loading?: boolean;
@@ -47,27 +49,23 @@ const PreviewOrderModal: React.FC<Props> = ({
   closeOnBackdropPress = true,
 }) => {
   const [passengers, setPassengers] = useState<PassengerOption[]>([]);
-  // query riêng cho từng ghế: { [seat_code]: string }
   const [queries, setQueries] = useState<Record<string, string>>({});
-  // chọn hành khách cho từng ghế
   const [assignments, setAssignments] = useState<
     Record<string, PassengerOption | null>
   >({});
 
-  // tải passengers
   useEffect(() => {
     (async () => {
       try {
-        const res = await getPassengerProfiles(); // ← trả mảng objects
-        // chuẩn hóa thành options {id, name}
-        const options: PassengerOption[] = (Array.isArray(res) ? res : []).map(
-          (it: any) => ({
+        const res = await getPassengerProfiles();
+        const opts: PassengerOption[] = (Array.isArray(res) ? res : [])
+          .map((it: any) => ({
             id: Number(it.id ?? it.passenger_id ?? 0),
             name: String(it.full_name ?? it.name ?? ""),
             phone: it.phone,
-          })
-        ).filter(o => !!o.id && !!o.name);
-        setPassengers(options);
+          }))
+          .filter((o) => !!o.id && !!o.name);
+        setPassengers(opts);
       } catch (e) {
         console.log("fetch passengers error:", e);
         setPassengers([]);
@@ -75,31 +73,22 @@ const PreviewOrderModal: React.FC<Props> = ({
     })();
   }, []);
 
-  // reset queries/assignments khi mở modal hoặc seats thay đổi
   useEffect(() => {
     if (!visible) return;
-    const initialQueries: Record<string, string> = {};
-    const initialAssigns: Record<string, PassengerOption | null> = {};
+    const initQ: Record<string, string> = {};
+    const initA: Record<string, PassengerOption | null> = {};
     (order?.seats ?? []).forEach((s) => {
-      initialQueries[s.seat_code] = "";
-      if (s.passenger_id && s.passenger_name) {
-        initialAssigns[s.seat_code] = {
-          id: Number(s.passenger_id),
-          name: s.passenger_name,
-        };
-      } else {
-        initialAssigns[s.seat_code] = null;
-      }
+      initQ[s.seat_code] = s.passenger_name ?? "";
+      initA[s.seat_code] =
+        s.passenger_id && s.passenger_name
+          ? { id: Number(s.passenger_id), name: s.passenger_name }
+          : null;
     });
-    setQueries(initialQueries);
-    setAssignments(initialAssigns);
+    setQueries(initQ);
+    setAssignments(initA);
   }, [visible, order?.seats]);
 
-  const handleChangeQuery = (seatCode: string, text: string) => {
-    setQueries((prev) => ({ ...prev, [seatCode]: text }));
-  };
-
-  const filteredForSeat = (seatCode: string) => {
+  const filtered = (seatCode: string) => {
     const q = (queries[seatCode] ?? "").toLowerCase().trim();
     if (!q) return [];
     return passengers.filter(
@@ -111,11 +100,7 @@ const PreviewOrderModal: React.FC<Props> = ({
 
   const selectPassenger = (seatCode: string, p: PassengerOption) => {
     setAssignments((prev) => ({ ...prev, [seatCode]: p }));
-    setQueries((prev) => ({ ...prev, [seatCode]: p.name })); // điền tên vào input
-  };
-
-  const submit = () => {
-    onConfirm?.(assignments);
+    setQueries((prev) => ({ ...prev, [seatCode]: p.name }));
   };
 
   return (
@@ -126,100 +111,113 @@ const PreviewOrderModal: React.FC<Props> = ({
       statusBarTranslucent
       onRequestClose={onCloseModal}
     >
-      {/* Backdrop */}
-      <View style={styles.container}>
-        <Pressable
-          style={styles.backdrop}
-          onPress={closeOnBackdropPress ? onCloseModal : undefined}
-        />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, justifyContent: "flex-end" }} // Adjust as needed
+      >
+        <View style={styles.container}>
+          <Pressable
+            style={styles.backdrop}
+            onPress={closeOnBackdropPress ? onCloseModal : undefined}
+          />
+          <View style={styles.sheet}>
+            <View style={styles.header}>
+              <Text style={styles.title}>{title}</Text>
+              <Pressable onPress={onCloseModal} hitSlop={10}>
+                <Ionicons name="close" size={22} color="#0F172A" />
+              </Pressable>
+            </View>
 
-        {/* Sheet */}
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            <Pressable onPress={onCloseModal} hitSlop={10}>
-              <Ionicons name="close" size={22} color="#0F172A" />
-            </Pressable>
-          </View>
+            <View style={styles.content}>
+              {loading ? (
+                <Text>Đang tính toán…</Text>
+              ) : !order ? (
+                <Text>Chưa có dữ liệu.</Text>
+              ) : (
+                <>
+                  <Text style={styles.row}>Chuyến: {order.trip_id ?? "—"}</Text>
+                  <Text style={styles.row}>
+                    Tuyến: {order.trip_name ?? "—"}
+                  </Text>
+                  <Text style={styles.row}>
+                    Giờ khởi hành: {order.departure_time ?? "—"}
+                  </Text>
 
-          <View style={styles.content}>
-            {loading ? (
-              <Text>Đang tính toán…</Text>
-            ) : !order ? (
-              <Text>Chưa có dữ liệu.</Text>
-            ) : (
-              <>
-                <Text style={styles.row}>Chuyến: {order.trip_id ?? "—"}</Text>
-                <Text style={styles.row}>Tuyến: {order.trip_name ?? "—"}</Text>
-                <Text style={styles.row}>
-                  Giờ khởi hành: {order.departure_time ?? "—"}
-                </Text>
+                  <View style={{ marginTop: 8 }}>
+                    <Text style={[styles.row, styles.bold]}>
+                      Ghế & Hành khách
+                    </Text>
 
-                <View style={{ marginTop: 8 }}>
-                  <Text style={[styles.row, styles.bold]}>Ghế & Hành khách</Text>
-
-                  {(order.seats ?? []).map((s) => {
-                    const seatCode = s.seat_code;
-                    const list = filteredForSeat(seatCode);
-                    return (
-                      <View key={seatCode} style={styles.seatRow}>
-                        <View style={{ flex: 1 }}>
+                    {(order.seats ?? []).map((s) => {
+                      const seatCode = s.seat_code;
+                      const list = filtered(seatCode);
+                      return (
+                        <View key={seatCode} style={styles.seatRow}>
                           <Text style={styles.seatLabel}>
                             • {seatCode} — {s.price?.toLocaleString()}đ
                           </Text>
-
-                          {/* Ô Autocomplete cho ghế này */}
-                          <Autocomplete
-                            data={list}
-                            value={queries[seatCode] ?? ""}
-                            onChangeText={(t) => handleChangeQuery(seatCode, t)}
-                            flatListProps={{
-                              keyboardShouldPersistTaps: "always",
-                              keyExtractor: (item: PassengerOption) =>
-                                String(item.id),
-                              renderItem: ({ item }) => (
-                                <Pressable
-                                  onPress={() => selectPassenger(seatCode, item)}
-                                  style={styles.option}
-                                >
-                                  <Text style={styles.optionText}>
-                                    {item.name}
-                                    {item.phone ? ` — ${item.phone}` : ""}
-                                  </Text>
-                                </Pressable>
-                              ),
-                            }}
-                            inputContainerStyle={styles.autoInputContainer}
-                            listContainerStyle={styles.autoListContainer}
-                            listStyle={styles.autoList}
-                            placeholder="Chọn hành khách"
-                          />
-                          {/* Hiển thị người đã chọn (nếu có) */}
+                          <View style={{ position: "relative", zIndex: 10 }}>
+                            <Autocomplete
+                              data={list}
+                              value={queries[seatCode] ?? ""}
+                              onChangeText={(t) =>
+                                setQueries((prev) => ({
+                                  ...prev,
+                                  [seatCode]: t,
+                                }))
+                              }
+                              flatListProps={{
+                                keyboardShouldPersistTaps: "always",
+                                keyExtractor: (item: PassengerOption) =>
+                                  String(item.id),
+                                renderItem: ({ item }) => (
+                                  <Pressable
+                                    onPress={() =>
+                                      selectPassenger(seatCode, item)
+                                    }
+                                    style={styles.option}
+                                  >
+                                    <Text style={styles.optionText}>
+                                      {item.name}
+                                      {item.phone ? ` — ${item.phone}` : ""}
+                                    </Text>
+                                  </Pressable>
+                                ),
+                              }}
+                              inputContainerStyle={styles.autoInputContainer}
+                              listContainerStyle={styles.autoListContainer}
+                              listStyle={styles.autoList}
+                              placeholder="Chọn hành khách"
+                            />
+                          </View>
                           {assignments[seatCode] && (
                             <Text style={styles.selectedText}>
                               Đã chọn: {assignments[seatCode]?.name}
                             </Text>
                           )}
                         </View>
-                      </View>
-                    );
-                  })}
-                </View>
+                      );
+                    })}
+                  </View>
 
-                <View style={{ marginTop: 12 }}>
-                  <Text style={[styles.row, styles.bold]}>
-                    Tổng: {order.total?.toLocaleString()}đ
-                  </Text>
-                </View>
-              </>
-            )}
+                  <View style={{ marginTop: 12 }}>
+                    <Text style={[styles.row, styles.bold]}>
+                      Tổng: {order.total?.toLocaleString()}đ
+                    </Text>
+                  </View>
+                </>
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={styles.cta}
+              onPress={() => onConfirm?.(assignments)}
+            >
+              <Text style={styles.ctaText}>Xác nhận đặt vé</Text>
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity style={styles.cta} onPress={submit}>
-            <Text style={styles.ctaText}>Xác nhận đặt vé</Text>
-          </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -228,14 +226,24 @@ export default PreviewOrderModal;
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "flex-end" },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.4)" },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
+  },
   sheet: {
     backgroundColor: "#fff",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 16,
   },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  sheetFocused: {
+    height: "80%",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   title: { fontSize: 18, fontWeight: "600" as const },
   content: { paddingVertical: 12, gap: 6 },
   row: { color: "#0F172A" },
@@ -244,8 +252,13 @@ const styles = StyleSheet.create({
   seatLabel: { fontWeight: "600" as const, marginBottom: 6 },
   autoInputContainer: { borderWidth: 0, paddingHorizontal: 0 },
   autoListContainer: { marginTop: 4 },
-  autoList: { borderWidth: StyleSheet.hairlineWidth, borderColor: "#ddd" },
-  option: { paddingVertical: 8, paddingHorizontal: 8 },
+  autoList: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "#ddd",
+    zIndex: 9999, // iOS
+    elevation: 8, // Android
+  },
+  option: { paddingVertical: 8, paddingHorizontal: 8, backgroundColor: "#fff" },
   optionText: { color: "#0F172A" },
   selectedText: { marginTop: 4, color: "#0F172A" },
   cta: {

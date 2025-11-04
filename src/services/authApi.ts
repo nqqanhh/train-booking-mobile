@@ -50,7 +50,7 @@ export const getMe = async () => {
 export const patchUpdateProfile = async (payload: UpdateProfileReq) => {
   try {
     const { data } = await api.patch("/profile/me", payload);
-    console.log("data:", data);
+    // console.log("data:", data);
     return data?.profile;
   } catch (e: any) {
     if (e?.response?.status === 401) return null; // chưa đăng nhập / token hết hạn
