@@ -21,19 +21,11 @@ export default function EnterOTPScreen() {
     try {
       await verifyOtp(emailState, otp);
       router.replace(`/auth/resetpassword?email=${emailState}`);
-    } catch (error) {
-      
-    }
-  }
+    } catch (error) {}
+  };
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.exitIcon} onPress={() => handleGoBack()}>
-        <Ionicons name="chevron-back" size={40} color="black" />
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={{ position: "absolute", top: "70", right: "40" }}
-        onPress={() => router.push("/auth/forgotpassword")}
-      >
+      <TouchableOpacity onPress={() => router.push("/auth/forgotpassword")}>
         <Ionicons name="chevron-back" size={40} color="black" />
       </TouchableOpacity>
       <View style={{ paddingVertical: 20, marginTop: 90 }}>
@@ -43,14 +35,14 @@ export default function EnterOTPScreen() {
         </Text>
         <OtpInput numberOfDigits={6} onTextChange={setOtp} />
       </View>
-            <View style={styles.bottomContainer}>
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: "#3ac21fff" }]}
-                onPress={() => onSubmit()}
-              >
-                <Text style={styles.buttonText}>Submit</Text>
-              </TouchableOpacity>
-            </View>
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: "#3ac21fff" }]}
+          onPress={() => onSubmit()}
+        >
+          <Text style={styles.buttonText}>Submit</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

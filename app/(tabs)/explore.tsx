@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   TextInput,
@@ -11,6 +10,7 @@ import {
   RefreshControl,
   StyleSheet,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 // Đảm bảo tên import đúng với file service của bạn:
 import {
   fetchAllArticals as fetchAllArticles,
