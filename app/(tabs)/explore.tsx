@@ -18,6 +18,7 @@ import {
 } from "@/src/services/newsApi";
 import { theme } from "@/assets/colors";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 6;
 
@@ -31,6 +32,7 @@ export default function ExploreClientPaging() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   const router = useRouter();
+  const { t } = useTranslation();
   const loadAll = useCallback(
     async (fresh = false) => {
       setLoading(true);
@@ -121,7 +123,7 @@ export default function ExploreClientPaging() {
       {/* Search */}
       <View style={styles.searchBar}>
         <TextInput
-          placeholder="Tìm"
+          placeholder={t("searchPlaceholder")}
           placeholderTextColor={theme.text}
           value={q}
           onChangeText={setQ}
@@ -130,7 +132,9 @@ export default function ExploreClientPaging() {
           returnKeyType="search"
         />
         <TouchableOpacity style={styles.btn} onPress={onSearch}>
-          <Text style={{ color: "#fff", fontWeight: "600" }}>Tìm</Text>
+          <Text style={{ color: "#fff", fontWeight: "600" }}>
+            {t("searchButton")}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -157,13 +161,13 @@ export default function ExploreClientPaging() {
               </View>
             ) : cursor >= all.length && visible.length > 0 ? (
               <View style={{ paddingVertical: 12, alignItems: "center" }}>
-                <Text>Hết bài</Text>
+                <Text>{t("endOfArticles")}</Text>
               </View>
             ) : null
           }
           ListEmptyComponent={
             <View style={styles.center}>
-              <Text>Không có bài.</Text>
+              <Text>{t("noArticles")}</Text>
             </View>
           }
           showsVerticalScrollIndicator

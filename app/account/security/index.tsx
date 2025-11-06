@@ -3,6 +3,7 @@ import { changePassword } from "@/src/services/userApi";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   StyleSheet,
   Text,
@@ -16,6 +17,7 @@ export default function ResetPasswordScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
   const { email } = useLocalSearchParams();
+  const { t } = useTranslation();
 
   const handleGoBack = () => {
     router.replace("/(tabs)/profile");
@@ -46,34 +48,31 @@ export default function ResetPasswordScreen() {
         <Ionicons name="chevron-back" size={40} color="black" />
       </TouchableOpacity>
       <View style={{ marginTop: 90 }}>
-        <Text style={styles.title}>Set up new password</Text>
-        <Text style={styles.titleUnder}>
-          Password must be 8-20 charaters with at least 1 number, 1 letter and 1
-          special symbol
-        </Text>
+        <Text style={styles.title}>{t("setNewPassword")}</Text>
+        <Text style={styles.titleUnder}>{t("passwordRequirements")}</Text>
         <View style={{ marginTop: 20 }}>
-          <Text style={styles.inputLabel}>Old password</Text>
+          <Text style={styles.inputLabel}>{t("oldPassword")}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your new password"
+            placeholder={t("enterOldPassword")}
             value={oldPassword}
             onChangeText={setOldPassword}
             secureTextEntry={true}
             placeholderTextColor={"#999"}
           />
-          <Text style={styles.inputLabel}>New password</Text>
+          <Text style={styles.inputLabel}>{t("newPassword")}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your new password"
+            placeholder={t("enterNewPassword")}
             value={newPassword}
             onChangeText={setNewPassword}
             secureTextEntry={true}
             placeholderTextColor={"#999"}
           />
-          <Text style={styles.inputLabel}>Confirm password</Text>
+          <Text style={styles.inputLabel}>{t("confirmPassword")}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Re-enter your new password"
+            placeholder={t("reEnterNewPassword")}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry={true}
@@ -85,7 +84,7 @@ export default function ResetPasswordScreen() {
             style={[styles.button, { backgroundColor: "#3ac21fff" }]}
             onPress={() => onSubmit()}
           >
-            <Text style={styles.buttonText}>Confirm</Text>
+            <Text style={styles.buttonText}>{t("confirm")}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -96,7 +95,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "flex-start",
-
     paddingHorizontal: 20,
     paddingVertical: 70,
     backgroundColor: "#fff",

@@ -9,10 +9,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import { useAuth } from "@/src/hooks/useAuth";
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
+  const { t } = useTranslation();
 
   const { requestOtp, setResetEmail } = useAuth();
   const router = useRouter();
@@ -28,7 +30,7 @@ export default function ForgotPassword() {
     try {
       await requestOtp(email);
       router.replace(`/auth/otp?email=${email}`);
-      
+
       console.log("Send verification code to email: ", email);
     } catch (error: any) {
       console.log(error?.response?.data?.messsage || error?.message);
@@ -46,16 +48,14 @@ export default function ForgotPassword() {
         <Ionicons name="chevron-back" size={40} color="black" />
       </TouchableOpacity>
       <View style={{ marginTop: 90 }}>
-        <Text style={styles.title}>Forgot password</Text>
-        <Text style={styles.titleUnder}>
-          Please enter your email address to get verification code.
-        </Text>
-        <Text style={styles.inputLabel}>Email address</Text>
+        <Text style={styles.title}>{t("forgotPassword")}</Text>
+        <Text style={styles.titleUnder}>{t("enterEmailForCode")}</Text>
+        <Text style={styles.inputLabel}>{t("emailAddress")}</Text>
         <TextInput
           style={styles.input}
           value={email}
           onChangeText={setEmail}
-          placeholder="Enter your email adress"
+          placeholder={t("enterEmailAddress")}
         />
       </View>
       <View style={styles.bottomContainer}>
@@ -63,7 +63,7 @@ export default function ForgotPassword() {
           style={[styles.button, { backgroundColor: "#3ac21fff" }]}
           onPress={() => handleSendEmail()}
         >
-          <Text style={styles.buttonText}>Submit</Text>
+          <Text style={styles.buttonText}>{t("submit")}</Text>
         </TouchableOpacity>
       </View>
     </View>

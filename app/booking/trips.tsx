@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import images from "../../assets/images/index";
 import { getRouteById, getTripsByDate } from "../../src/services/bookingApi";
 
@@ -55,6 +56,7 @@ export default function TripsListScreen() {
   );
 
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [trips, setTrips] = useState<Trip[]>([]);
   const [route, setRoute] = useState<any>(null);
@@ -132,7 +134,7 @@ export default function TripsListScreen() {
     return (
       <Center>
         <Text style={{ color: "tomato", textAlign: "center" }}>
-          routeId không hợp lệ. Vui lòng quay lại màn trước.
+          {t("invalidRouteId")}
         </Text>
       </Center>
     );
@@ -142,7 +144,7 @@ export default function TripsListScreen() {
     return (
       <Center>
         <ActivityIndicator size="large" />
-        <Text>Đang tải kết quả…</Text>
+        <Text>{t("loadingResults")}</Text>
       </Center>
     );
   }
@@ -173,12 +175,12 @@ export default function TripsListScreen() {
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <CityPill
             code={route ? codeFrom(route.origin) : "---"}
-            label={route ? route.origin : "Origin"}
+            label={route ? route.origin : t("origin")}
             align="left"
           />
           <CityPill
             code={route ? codeFrom(route.destination) : "---"}
-            label={route ? route.destination : "Destination"}
+            label={route ? route.destination : t("destination")}
             align="right"
           />
         </View>
@@ -225,7 +227,8 @@ export default function TripsListScreen() {
         style={{ paddingHorizontal: 12, paddingTop: 12 }}
         ListEmptyComponent={
           <Text style={{ textAlign: "center", marginTop: 24, color: SUB }}>
-            Không có chuyến nào cho ngày {selectedDate.format("DD/MM/YYYY")}
+            {t("noTrips")}
+            {selectedDate.format("DD/MM/YYYY")}
           </Text>
         }
         renderItem={({ item }) => (

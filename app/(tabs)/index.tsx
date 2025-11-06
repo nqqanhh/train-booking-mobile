@@ -9,9 +9,11 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View, SafeAreaViewBase,
-  StyleSheet
+  View,
+  SafeAreaViewBase,
+  StyleSheet,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import {
   getRouteIdByOriginDestination,
@@ -38,6 +40,7 @@ const theme = {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [oneWay, setOneWay] = useState(true);
   const [loading, setLoading] = useState(false); // thêm state loading
   // state demo — bạn có thể nối API routes & địa điểm thật
@@ -136,7 +139,7 @@ export default function HomeScreen() {
               marginBottom: 8,
             }}
           >
-            Where do you want to go?
+            {t("whereDoYouWantToGo")}
           </Text>
 
           {/* One Way / Round Trip */}
@@ -151,19 +154,19 @@ export default function HomeScreen() {
           >
             <TogglePill
               active={oneWay}
-              label="One Way"
+              label={t("oneWay")}
               onPress={() => setOneWay(true)}
             />
             <TogglePill
               active={!oneWay}
-              label="Round Trip"
+              label={t("roundTrip")}
               onPress={() => setOneWay(false)}
             />
           </View>
 
           {/* Current Location */}
           <FieldCard
-            label="Current Location"
+            label={t("currentLocation")}
             value={fromLoc}
             onPress={() => {
               setIsSelectingOrigin(true);
@@ -173,7 +176,7 @@ export default function HomeScreen() {
 
           {/* Destination */}
           <FieldCard
-            label="Destination"
+            label={t("destination")}
             value={toLoc}
             onPress={() => {
               setIsSelectingOrigin(false);
@@ -190,7 +193,7 @@ export default function HomeScreen() {
             }}
           >
             <FieldCard
-              label="Departure Date"
+              label={t("departureDate")}
               value={departStr}
               style={{ flex: 1 }}
               onPress={() => {
@@ -201,7 +204,7 @@ export default function HomeScreen() {
             />
             {!oneWay && (
               <FieldCard
-                label="Return Date"
+                label={t("returnDate")}
                 value={returnStr}
                 style={{ flex: 1 }}
                 onPress={() => {
@@ -226,9 +229,11 @@ export default function HomeScreen() {
             }}
           >
             <View>
-              <Text style={{ color: theme.sub, fontWeight: "600" }}>Seat</Text>
+              <Text style={{ color: theme.sub, fontWeight: "600" }}>
+                {t("seat")}
+              </Text>
               <Text style={{ color: theme.text, fontWeight: 700 }}>
-                {seats} {seats > 1 ? "Seats" : "Seat"}
+                {seats} {seats > 1 ? t("seats") : t("seat")}
               </Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -275,7 +280,7 @@ export default function HomeScreen() {
             <Text
               style={{ color: "#fff", fontWeight: "800", letterSpacing: 0.3 }}
             >
-              Search Train
+              {t("searchTrain")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -284,11 +289,11 @@ export default function HomeScreen() {
       {/* Gợi ý dưới (placeholder) */}
       <View style={{ paddingHorizontal: 16, marginTop: 18 }}>
         <Text style={{ color: theme.sub, fontWeight: "700", marginBottom: 8 }}>
-          Popular destinations
+          {t("popularDestinations")}
         </Text>
 
         {loading ? (
-          <Text style={{ color: theme.sub }}>Loading routes...</Text>
+          <Text style={{ color: theme.sub }}>{t("loadingRoutes")}</Text>
         ) : (
           <FlatList
             horizontal
@@ -301,7 +306,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             style={{ height: 40 }} // đảm bảo có chiều cao để hiển thị
             ListEmptyComponent={
-              <Text style={{ color: theme.sub }}>No routes</Text>
+              <Text style={{ color: theme.sub }}>{t("noRoutes")}</Text>
             }
             renderItem={({ item: r }) => (
               <TouchableOpacity
@@ -348,7 +353,7 @@ export default function HomeScreen() {
                 marginBottom: 10,
               }}
             >
-              {isSelectingOrigin ? "Select Origin" : "Select Destination"}
+              {isSelectingOrigin ? t("selectOrigin") : t("selectDestination")}
             </Text>
 
             <ScrollView>
@@ -386,7 +391,9 @@ export default function HomeScreen() {
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: "#fff", fontWeight: "700" }}>Close</Text>
+              <Text style={{ color: "#fff", fontWeight: "700" }}>
+                {t("close")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

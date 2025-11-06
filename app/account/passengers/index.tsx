@@ -19,8 +19,10 @@ import CreatePassengerModal, {
   Passenger as PassengerPayload,
 } from "./components/CreatePassengerModal";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
 export default function PassengerScreen() {
+  const { t } = useTranslation();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -144,7 +146,7 @@ export default function PassengerScreen() {
           <Ionicons name="chevron-back" size={22} />
         </Pressable>
         <View style={styles.headerTextWrapper}>
-          <Text style={styles.headerText}>Passenger Profiles</Text>
+          <Text style={styles.headerText}>{t("passengerProfiles")}</Text>
         </View>
         {/* giữ chỗ cho cân đối */}
         <View style={{ width: 32 }} />
@@ -159,7 +161,7 @@ export default function PassengerScreen() {
             }}
           >
             <Text style={{ color: "#fff", fontWeight: "700" }}>
-              + New passenger
+              + {t("newPassenger")}
             </Text>
           </Pressable>
         </View>
@@ -178,7 +180,7 @@ export default function PassengerScreen() {
           ListEmptyComponent={
             !loading ? (
               <Text style={{ textAlign: "center", marginTop: 24 }}>
-                Bạn chưa có profile nào cả
+                {t("noProfiles")}
               </Text>
             ) : null
           }
@@ -190,9 +192,11 @@ export default function PassengerScreen() {
               <View>
                 {/* <Text>id: {item.id}</Text> */}
                 <Text style={styles.profileCardFullName}>
-                  Tên: {item.full_name}
+                  {t("name")}: {item.full_name}
                 </Text>
-                <Text>SDT: {item.phone}</Text>
+                <Text>
+                  {t("phone")}: {item.phone}
+                </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} />
             </TouchableOpacity>
@@ -207,7 +211,7 @@ export default function PassengerScreen() {
           onSubmit={handleSubmit}
           submitting={submitting}
           isEditing={true}
-          title={"Edit passenger"}
+          title={t("editPassenger")}
           passenger={editing?.data ?? null}
         />
       ) : (
@@ -217,7 +221,7 @@ export default function PassengerScreen() {
           onSubmit={handleSubmit}
           submitting={submitting}
           isEditing={false}
-          title={"Create passenger"}
+          title={t("createPassenger")}
           passenger={null}
         />
       )}

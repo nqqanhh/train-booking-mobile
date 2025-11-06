@@ -1,9 +1,11 @@
 import ParallaxScrollView from "@/src/components/ParallaxScrollView";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 
 export default function Login() {
   const router = useRouter();
+  const { t } = useTranslation();
   const signInWithGoogle = async () => {
     // Implement Google Sign-In logic here
   };
@@ -28,40 +30,38 @@ export default function Login() {
         />
       }
     >
-      <Text style={styles.titleLogin}>Login</Text>
-      <Text style={styles.titleUnder}>
-        Please choose the login method that suits you
-      </Text>
+      <Text style={styles.titleLogin}>{t("login")}</Text>
+      <Text style={styles.titleUnder}>{t("chooseLoginMethod")}</Text>
       <TouchableOpacity
         style={[styles.loginMethodButton, { backgroundColor: "#3ac21fff" }]}
         onPress={() => signInWithPhone()}
       >
-        <Text style={{ color: "#fff" }}>Continue with Phone Numbers</Text>
+        <Text style={{ color: "#fff" }}>{t("continueWithPhone")}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.loginMethodButton}
         onPress={() => signInWithGoogle()}
       >
-        <Text>Sign in with Google</Text>
+        <Text>{t("signInWithGoogle")}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.loginMethodButton}
         onPress={() => signInWithApple()}
       >
-        <Text>Sign in with Apple</Text>
+        <Text>{t("signInWithApple")}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.loginMethodButton}
         onPress={() => signInWithFacebook()}
       >
-        <Text>Sign in with Facebook</Text>
+        <Text>{t("signInWithFacebook")}</Text>
       </TouchableOpacity>
-      <Text style={styles.orLogin}>or login with</Text>
+      <Text style={styles.orLogin}>{t("orLoginWith")}</Text>
       <TouchableOpacity
         style={[styles.loginMethodButton, { backgroundColor: "#def8d8ff" }]}
         onPress={() => router.push("/auth/register")}
       >
-        <Text style={{ color: "#3ac21fff" }}>Create an account</Text>
+        <Text style={{ color: "#3ac21fff" }}>{t("createAccount")}</Text>
       </TouchableOpacity>
     </ParallaxScrollView>
   );

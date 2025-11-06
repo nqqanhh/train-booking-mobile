@@ -7,12 +7,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { getRoutes } from "../../src/services/bookingApi";
 
 export default function RoutesListScreen() {
   const [routes, setRoutes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     (async () => {
@@ -31,7 +33,7 @@ export default function RoutesListScreen() {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <ActivityIndicator size="large" />
-        <Text>Đang tải tuyến đường...</Text>
+        <Text>{t("loadingRoutes")}</Text>
       </View>
     );
 

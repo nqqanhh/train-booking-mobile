@@ -3,8 +3,10 @@ import { Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { useContext } from "react";
 import { AuthProvider, AuthContext } from "@/src/context/AuthContext";
-
+import i18next from "../src/services/i18next";
+import { useTranslation } from "react-i18next";
 function Nav() {
+  const { t } = useTranslation();
   const { user, hydrate } = useContext(AuthContext);
   console.log("hydrate:", hydrate);
   if (!hydrate) {

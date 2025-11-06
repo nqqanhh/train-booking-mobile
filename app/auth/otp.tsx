@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/src/hooks/useAuth";
 
 export default function EnterOTPScreen() {
@@ -10,6 +11,7 @@ export default function EnterOTPScreen() {
   const { email } = useLocalSearchParams();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [emailState, setEmailState] = useState(email || "");
+  const { t } = useTranslation();
 
   const { verifyOtp } = useAuth();
 
@@ -29,9 +31,9 @@ export default function EnterOTPScreen() {
         <Ionicons name="chevron-back" size={40} color="black" />
       </TouchableOpacity>
       <View style={{ paddingVertical: 20, marginTop: 90 }}>
-        <Text style={styles.title}>Enter the OTP code</Text>
+        <Text style={styles.title}>{t("enterOtpCode")}</Text>
         <Text style={styles.titleUnder}>
-          To confirm the account, enter the 6-digit code we sent to {emailState}{" "}
+          {t("confirmAccountOtp")} {emailState}{" "}
         </Text>
         <OtpInput numberOfDigits={6} onTextChange={setOtp} />
       </View>
@@ -40,7 +42,7 @@ export default function EnterOTPScreen() {
           style={[styles.button, { backgroundColor: "#3ac21fff" }]}
           onPress={() => onSubmit()}
         >
-          <Text style={styles.buttonText}>Submit</Text>
+          <Text style={styles.buttonText}>{t("submit")}</Text>
         </TouchableOpacity>
       </View>
     </View>

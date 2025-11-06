@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/src/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 import images from "../../assets/images";
 
 const BG = "#F6FAF6";
@@ -23,6 +24,7 @@ const PROFILE_CARD = "#BBBBBB";
 export default function Account() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   const onLogout = () => {
     logout();
@@ -66,10 +68,10 @@ export default function Account() {
             fontSize: 26,
             color: TEXT,
             marginBottom: 10,
-            paddingLeft:16
+            paddingLeft: 16,
           }}
         >
-          Account
+          {t("account")}
         </Text>
       </ImageBackground>
 
@@ -114,31 +116,35 @@ export default function Account() {
         contentContainerStyle={{ gap: 20 }}
       >
         <Text style={{ fontWeight: "700", fontSize: 14, color: TEXT }}>
-          General
+          {t("general")}
         </Text>
 
         {/* Không bọc Pressable bên ngoài nữa, để Row tự handle onPress */}
         <Row
           icon="person"
-          label="Passenger Profiles"
+          label={t("passengerProfiles")}
           onPress={() => router.push("/account/passengers")}
         />
-
+        <Row
+          icon="language"
+          label={t("languages")}
+          onPress={() => router.push("/languages")}
+        />
         <Row
           icon="lock-closed"
-          label="Security"
+          label={t("security")}
           onPress={() => router.push("/account/security")}
         />
-        <Row icon="ticket-outline" label="Voucher & Discount" />
-        <Row icon="notifications-outline" label="Notification" />
+        <Row icon="ticket-outline" label={t("voucherDiscount")} />
+        <Row icon="notifications-outline" label={t("notification")} />
 
         <Text style={{ fontWeight: "700", fontSize: 14, color: TEXT }}>
-          Help
+          {t("help")}
         </Text>
 
-        <Row icon="help-circle-outline" label="Help Center" />
-        <Row icon="star-outline" label="Rate Our App" />
-        <Row icon="document-text-outline" label="Terms of Service" />
+        <Row icon="help-circle-outline" label={t("helpCenter")} />
+        <Row icon="star-outline" label={t("rateOurApp")} />
+        <Row icon="document-text-outline" label={t("termsOfService")} />
 
         <TouchableOpacity
           onPress={onLogout}
@@ -153,7 +159,7 @@ export default function Account() {
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <Ionicons name="log-out-outline" size={20} color="red" />
-            <Text style={{ color: "red" }}>Logout</Text>
+            <Text style={{ color: "red" }}>{t("logout")}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="red" />
         </TouchableOpacity>

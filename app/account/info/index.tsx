@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useAuth } from "@/src/hooks/useAuth";
 import { getMe } from "@/src/services/authApi";
+import { useTranslation } from "react-i18next";
 const GREEN = "#3ac21fff";
 const GREEN_DARK = "#5CA33A";
 const BG = "#F6FAF6";
@@ -22,6 +23,7 @@ const PROFILE_CARD = "#bbbbbbff";
 const LINE = "#E8EEE8";
 const PersonalInfo = () => {
   const { user, updateProfile } = useAuth();
+  const { t } = useTranslation();
 
   const [fullName, setFullName] = useState<any>(user?.full_name || "");
   const [email, setEmail] = useState<any>(user?.email || "");
@@ -38,12 +40,12 @@ const PersonalInfo = () => {
     try {
       setSaving(true);
       await updateProfile(fullName.trim(), email.trim(), phone.trim());
-      Alert.alert("Success", "Profile updated");
+      Alert.alert(t("success"), t("profileUpdated"));
       router.replace("/(tabs)/profile");
     } catch (error: any) {
       console.log(error?.response?.data?.messsage || error?.message);
       Alert.alert(
-        "Update failed",
+        t("updateFailed"),
         error?.response?.data?.messsage || error?.message || "Error"
       );
     } finally {
@@ -70,7 +72,9 @@ const PersonalInfo = () => {
           onPress={() => handleGoBack()}
         />
         <View style={{ width: "70%" }}>
-          <Text style={{ fontSize: 25, fontWeight: "600" }}>Personal Info</Text>
+          <Text style={{ fontSize: 25, fontWeight: "600" }}>
+            {t("personalInfo")}
+          </Text>
         </View>
       </View>
       {/*  */}
@@ -93,25 +97,25 @@ const PersonalInfo = () => {
         <View style={{ gap: 3 }}>
           <Text style={{ fontSize: 26, fontWeight: 600 }}>{fullName}</Text>
           <Text style={{ color: GREEN, textAlign: "center" }}>
-            Upload profile picture
+            {t("uploadProfilePicture")}
           </Text>
         </View>
         <View style={{ width: "100%", gap: 26 }}>
           <View>
-            <Text style={styles.inputLabel}>Full Name</Text>
+            <Text style={styles.inputLabel}>{t("fullName")}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your full name"
+              placeholder={t("enterFullName")}
               value={fullName}
               onChangeText={setFullName}
               placeholderTextColor={"#999"}
             />
           </View>
           <View>
-            <Text style={styles.inputLabel}>Email</Text>
+            <Text style={styles.inputLabel}>{t("email")}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your Email"
+              placeholder={t("enterEmail")}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -119,10 +123,10 @@ const PersonalInfo = () => {
             />
           </View>
           <View>
-            <Text style={styles.inputLabel}>Phone numbers </Text>
+            <Text style={styles.inputLabel}>{t("phoneNumbers")}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your phone number"
+              placeholder={t("enterPhoneNumber")}
               value={phone}
               onChangeText={setPhone}
               autoCapitalize="none"
@@ -136,7 +140,7 @@ const PersonalInfo = () => {
             onPress={() => onSubmit()}
           >
             <Text style={styles.buttonText}>
-              {saving ? "Saving..." : "Save changes"}
+              {saving ? t("saving") : t("saveChanges")}
             </Text>
           </TouchableOpacity>
         </View>

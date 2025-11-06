@@ -12,6 +12,7 @@ import { getMyTickets } from "@/src/services/ticketsApi";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 const theme = {
   bg: "#F6FAF6",
   card: "#fff",
@@ -30,6 +31,7 @@ export default function MyTicketsScreen() {
   const [tickets, setTickets] = useState<any[]>([]);
 
   const router = useRouter();
+  const { t } = useTranslation();
   const load = async () => {
     try {
       setLoading(true);
@@ -47,7 +49,7 @@ export default function MyTicketsScreen() {
   if (!user) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <Text>Please login to see your tickets.</Text>
+        <Text>{t("pleaseLogin")}</Text>
       </View>
     );
   }
@@ -75,7 +77,7 @@ export default function MyTicketsScreen() {
                   fontWeight: "700",
                 }}
               >
-                {s.toUpperCase()}
+                {t(s).toUpperCase()}
               </Text>
             </Pressable>
           );
@@ -87,7 +89,9 @@ export default function MyTicketsScreen() {
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
           <ActivityIndicator size="large" color={theme.green} />
-          <Text style={{ color: theme.sub, marginTop: 8 }}>Đang tải vé…</Text>
+          <Text style={{ color: theme.sub, marginTop: 8 }}>
+            {t("loadingTickets")}
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -97,7 +101,7 @@ export default function MyTicketsScreen() {
             <Text
               style={{ textAlign: "center", color: theme.sub, marginTop: 16 }}
             >
-              Chưa có vé
+              {t("noTickets")}
             </Text>
           }
           renderItem={({ item }) => {
@@ -150,7 +154,7 @@ export default function MyTicketsScreen() {
                       fontWeight: "700",
                     }}
                   >
-                    {used ? "USED" : "ACTIVE"}
+                    {used ? "USED" : t("active")}
                   </Text>
                 </View>
                 {/* nếu cần xem QR, bạn có thể thêm nút mở modal QR từ qr_payload */}
