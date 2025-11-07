@@ -142,7 +142,11 @@ export default function Account() {
           {t("help")}
         </Text>
 
-        <Row icon="help-circle-outline" label={t("helpCenter")} />
+        <Row
+          icon="help-circle-outline"
+          label={t("helpCenter")}
+          onPress={() => router.push("/account/supportrequest")}
+        />
         <Row icon="star-outline" label={t("rateOurApp")} />
         <Row icon="document-text-outline" label={t("termsOfService")} />
 

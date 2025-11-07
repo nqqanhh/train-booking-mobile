@@ -115,6 +115,7 @@ export default function MyTicketsScreen() {
               ? `${item.trip.route.origin} → ${item.trip.route.destination}`
               : `Route #${item.trip?.route_id}`;
             const used = item.status === "used";
+            const refunded = item.status === "refunded";
             return (
               <TouchableOpacity
                 style={{
@@ -150,11 +151,15 @@ export default function MyTicketsScreen() {
                   </Text>
                   <Text
                     style={{
-                      color: used ? "#B42318" : theme.green,
+                      color: used
+                        ? "#B42318"
+                        : refunded
+                        ? "#462a28ff"
+                        : theme.green,
                       fontWeight: "700",
                     }}
                   >
-                    {used ? "USED" : t("active")}
+                    {used ? "USED" : refunded ? "REFUNDED" : t("active")}
                   </Text>
                 </View>
                 {/* nếu cần xem QR, bạn có thể thêm nút mở modal QR từ qr_payload */}
