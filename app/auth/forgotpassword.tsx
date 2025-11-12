@@ -3,12 +3,14 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Platform } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { useAuth } from "@/src/hooks/useAuth";
@@ -58,14 +60,18 @@ export default function ForgotPassword() {
           placeholder={t("enterEmailAddress")}
         />
       </View>
-      <View style={styles.bottomContainer}>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.bottomContainer}
+      >
         <TouchableOpacity
           style={[styles.button, { backgroundColor: "#3ac21fff" }]}
           onPress={() => handleSendEmail()}
         >
           <Text style={styles.buttonText}>{t("submit")}</Text>
         </TouchableOpacity>
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -107,8 +113,9 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     flexDirection: "column",
-    justifyContent: "space-between",
-    marginTop: 90,
+    justifyContent: "center",
+    height: "100%",
+    // backgroundColor: "red",
   },
   inputLabel: {
     fontSize: 16,

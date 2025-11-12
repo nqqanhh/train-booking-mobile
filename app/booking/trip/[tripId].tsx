@@ -362,7 +362,7 @@ export default function SelectSeatScreen() {
           paypal_order_id: paypalOrderId,
         });
         setWebVisible(false);
-        router.push("/booking/paymentsuccess");
+        router.replace("/booking/paymentsuccess");
 
         // TODO: điều hướng sang My Tickets hoặc đâu đó
       } catch (e: any) {
@@ -435,7 +435,7 @@ export default function SelectSeatScreen() {
           </Text>
           <Text style={{ color: theme.sub }}>
             {hhmm(trip.departure_time)} — {hhmm(trip.arrival_time)} •{" "}
-            {trip.status}
+            {/* {trip.status} */}
           </Text>
         </View>
       )}
@@ -464,8 +464,8 @@ export default function SelectSeatScreen() {
                 paddingHorizontal: 14,
                 borderRadius: 12,
                 backgroundColor: active ? theme.green : theme.rail,
-                width: "20%",
-                height: "50%",
+                width: "30%",
+                height: "70%",
                 justifyContent: "center",
               }}
             >
@@ -572,30 +572,9 @@ export default function SelectSeatScreen() {
               }}
             >
               <Text style={{ color: theme.white, fontWeight: "700" }}>
-                {picked.length ? `Preview • $${total.toFixed(2)}` : "Preview"}
-              </Text>
-            </Pressable>
-
-            <Pressable
-              disabled={!picked.length}
-              onPress={openPreview} // bắt buộc đi qua preview để chọn passenger
-              style={{
-                backgroundColor: picked.length ? theme.green : "#B0B8A8",
-                paddingVertical: 14,
-                borderRadius: 14,
-                alignItems: "center",
-                justifyContent: "center",
-                shadowColor: "#000",
-                shadowOpacity: 0.08,
-                shadowOffset: { width: 0, height: 2 },
-                shadowRadius: 4,
-                elevation: 2,
-              }}
-            >
-              <Text style={{ color: theme.white, fontWeight: "700" }}>
                 {picked.length
-                  ? `Pay with PayPal • $${total.toFixed(2)}`
-                  : "Pay"}
+                  ? `Preview • ${total.toFixed(0)} VND`
+                  : "Preview"}
               </Text>
             </Pressable>
           </View>
@@ -699,6 +678,33 @@ function CabinHead() {
           borderColor: theme.line,
         }}
       />
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 16,
+          marginTop: 12,
+          justifyContent: "center",
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <View style={{ height: 12, width: 12, backgroundColor: "#fde68a" }} />
+          <Text>VIP</Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <View style={{ height: 12, width: 12, backgroundColor: "#bbf7d0" }} />
+          <Text>Thường</Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <View
+            style={{
+              height: 12,
+              width: 12,
+              backgroundColor: theme.seatSoldBorder,
+            }}
+          />
+          <Text>Đã bán</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -731,9 +737,12 @@ function SeatGridFixed({
 
   if (!rows || !cols) {
     return (
-      <Text style={{ color: theme.sub, textAlign: "center" }}>
-        Template layout (rows/cols) not set
-      </Text>
+      <View>
+        <ActivityIndicator size="large" color={theme.green} />
+        <Text style={{ marginTop: 8, color: theme.sub, textAlign: "center" }}>
+          Loading…
+        </Text>
+      </View>
     );
   }
 
@@ -809,12 +818,5 @@ function SeatGridFixed({
     );
   }
 
-  return (
-    <View style={{ alignItems: "center" }}>
-      <Text style={{ color: "#98A2B3", fontSize: 12, marginBottom: 6 }}>
-        seats={seats.length} • layout={rows}x{cols}
-      </Text>
-      {grid}
-    </View>
-  );
+  return <View style={{ alignItems: "center" }}>{grid}</View>;
 }

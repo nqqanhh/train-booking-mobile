@@ -13,6 +13,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Autocomplete from "react-native-autocomplete-input";
 import { getPassengerProfiles } from "@/src/services/userApi";
+import { useRouter } from "expo-router";
+
+import CreatePassengerModal from "@/app/account/passengers/components/CreatePassengerModal";
+import { theme } from "@/assets/colors";
 
 export type OrderPreview = {
   trip_id?: string | number;
@@ -53,7 +57,13 @@ const PreviewOrderModal: React.FC<Props> = ({
   const [assignments, setAssignments] = useState<
     Record<string, PassengerOption | null>
   >({});
+  const [openCreatePassengerModal, setOpenCreatePassengerModal] =
+    useState(false);
+  const [seatForNewPassenger, setSeatForNewPassenger] = useState<string | null>(
+    null
+  );
 
+  const router = useRouter();
   useEffect(() => {
     (async () => {
       try {
@@ -103,6 +113,11 @@ const PreviewOrderModal: React.FC<Props> = ({
     setQueries((prev) => ({ ...prev, [seatCode]: p.name }));
   };
 
+  const handleAddPassenger = (seatCode: string) => {
+    setSeatForNewPassenger(seatCode);
+    setOpenCreatePassengerModal(true);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -140,7 +155,7 @@ const PreviewOrderModal: React.FC<Props> = ({
                     Tuyến: {order.trip_name ?? "—"}
                   </Text>
                   <Text style={styles.row}>
-                    Giờ khởi hành: {order.departure_time ?? "—"}
+                    Thời gian khởi hành: {order.departure_time ?? "—"}
                   </Text>
 
                   <View style={{ marginTop: 8 }}>
@@ -156,7 +171,7 @@ const PreviewOrderModal: React.FC<Props> = ({
                           <Text style={styles.seatLabel}>
                             • {seatCode} — {s.price?.toLocaleString()}đ
                           </Text>
-                          <View style={{ position: "relative", zIndex: 10 }}>
+                          <View style={{ position: "relative" }}>
                             <Autocomplete
                               data={list}
                               value={queries[seatCode] ?? ""}
@@ -167,6 +182,11 @@ const PreviewOrderModal: React.FC<Props> = ({
                                 }))
                               }
                               flatListProps={{
+                                ListEmptyComponent: () => (
+                                  <Text>
+                                    Không tìm thấy hành khách phù hợp.
+                                  </Text>
+                                ),
                                 keyboardShouldPersistTaps: "always",
                                 keyExtractor: (item: PassengerOption) =>
                                   String(item.id),
@@ -183,12 +203,36 @@ const PreviewOrderModal: React.FC<Props> = ({
                                     </Text>
                                   </Pressable>
                                 ),
+                                ListHeaderComponent: () =>
+                                  list.length > 2 ? (
+                                    <Text
+                                      style={{
+                                        fontWeight: "600",
+                                        padding: 8,
+                                        backgroundColor: "#f0f0f0",
+                                      }}
+                                    >
+                                      Chọn hành khách:
+                                    </Text>
+                                  ) : null,
                               }}
                               inputContainerStyle={styles.autoInputContainer}
                               listContainerStyle={styles.autoListContainer}
                               listStyle={styles.autoList}
                               placeholder="Chọn hành khách"
                             />
+                            <TouchableOpacity
+                              style={{
+                                position: "absolute",
+                                right: 8,
+                                top: 8,
+                                zIndex: 9999,
+                              }}
+                              onPress={() => handleAddPassenger(seatCode)}
+                            >
+                              <Ionicons name="add" />
+                              <Text>hahax</Text>
+                            </TouchableOpacity>
                           </View>
                           {assignments[seatCode] && (
                             <Text style={styles.selectedText}>
@@ -199,7 +243,21 @@ const PreviewOrderModal: React.FC<Props> = ({
                       );
                     })}
                   </View>
-
+                  <CreatePassengerModal
+                    visible={openCreatePassengerModal}
+                    onClose={() => {
+                      setOpenCreatePassengerModal(false);
+                      setSeatForNewPassenger(null);
+                    }}
+                    onSubmit={(newPassenger) => {
+                      setPassengers((prev) => [newPassenger, ...prev]);
+                      if (seatForNewPassenger) {
+                        selectPassenger(seatForNewPassenger, newPassenger);
+                      }
+                      setOpenCreatePassengerModal(false);
+                      setSeatForNewPassenger(null);
+                    }}
+                  />
                   <View style={{ marginTop: 12 }}>
                     <Text style={[styles.row, styles.bold]}>
                       Tổng: {order.total?.toLocaleString()}đ
@@ -219,6 +277,10 @@ const PreviewOrderModal: React.FC<Props> = ({
         </View>
       </KeyboardAvoidingView>
     </Modal>
+    // <CreatePassengerModal
+    //   visible={openCreatePassengerModal}
+    //   onClose={() => setOpenCreatePassengerModal(false)}
+    //   />
   );
 };
 
@@ -250,13 +312,18 @@ const styles = StyleSheet.create({
   bold: { fontWeight: "700" as const },
   seatRow: { paddingVertical: 8 },
   seatLabel: { fontWeight: "600" as const, marginBottom: 6 },
-  autoInputContainer: { borderWidth: 0, paddingHorizontal: 0 },
+  autoInputContainer: {
+    borderWidth: 0,
+    paddingHorizontal: 0,
+    borderColor: theme.green,
+  },
   autoListContainer: { marginTop: 4 },
   autoList: {
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "#ddd",
     zIndex: 9999, // iOS
     elevation: 8, // Android
+    backgroundColor: theme.green,
   },
   option: { paddingVertical: 8, paddingHorizontal: 8, backgroundColor: "#fff" },
   optionText: { color: "#0F172A" },

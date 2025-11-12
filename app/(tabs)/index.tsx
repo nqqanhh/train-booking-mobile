@@ -54,13 +54,12 @@ export default function HomeScreen() {
   const [isSelectingOrigin, setIsSelectingOrigin] = useState(true);
   const departStr = useMemo(() => formatDate(depart), [depart]);
   const returnStr = useMemo(() => formatDate(ret), [ret]);
-
+  const { user } = useAuth();
   const fetchRoutes = async () => {
     setLoading(true);
     try {
       const res = await getRoutes();
       setRoutes(res);
-      console.log(routes);
     } catch (error) {
       console.log("Error fetching routes:", error);
     } finally {
@@ -70,6 +69,13 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchRoutes();
   }, []);
+  useEffect(() => {
+    !user ? router.replace("/auth/login") : null;
+  }, []);
+  const stationList = [
+    ...new Set(routes.flatMap((r) => [r.origin, r.destination])),
+  ];
+  console.log(stationList);
   const onSearch = async () => {
     const route = await getRouteByOriginDestination(fromLoc, toLoc);
     const routeId = route.id;
@@ -357,7 +363,7 @@ export default function HomeScreen() {
             </Text>
 
             <ScrollView>
-              {routes.map((r) => {
+              {stationList.map((r) => {
                 const stations = isSelectingOrigin ? r.origin : r.destination;
                 return (
                   <Pressable

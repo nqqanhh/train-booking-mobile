@@ -35,7 +35,7 @@ type AuthContextType = {
   hydrate: boolean;
 
   // auth
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string,phone: string, password: string) => Promise<void>;
   register: (
     full_name: string,
     email: string,
@@ -164,10 +164,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     void bootstrap();
   }, [bootstrap]);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string,phone: string, password: string) => {
     setLoading(true);
     try {
-      const tk = await postLogin({ email, password }); // sẽ throw nếu 401
+      const tk = await postLogin({ email, phone, password }); // sẽ throw nếu 401
       await Secure.setItemAsync(ACCESS_KEY, tk.tokens.access_token);
       if (tk.tokens.refresh_token)
         await Secure.setItemAsync(REFRESH_KEY, tk.tokens.refresh_token);

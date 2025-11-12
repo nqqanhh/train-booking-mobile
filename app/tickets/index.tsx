@@ -66,7 +66,7 @@ export default function MyTicketsScreen() {
               onPress={() => setStatus(s)}
               style={{
                 paddingVertical: 8,
-                paddingHorizontal: 12,
+                paddingHorizontal: 8,
                 borderRadius: 12,
                 backgroundColor: active ? theme.green : "#EAF3EA",
               }}

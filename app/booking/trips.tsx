@@ -192,7 +192,7 @@ export default function TripsListScreen() {
           style={{ marginTop: 12 }}
           contentContainerStyle={{ gap: 8 }}
         >
-          {[-1, 0, 1, 2, 3].map((off) => {
+          {[-1, 0, 1, 2, 3, 4, 5].map((off) => {
             const d = dayjs(selectedDate).add(off, "day");
             const isSelected = d.isSame(selectedDate, "day");
             return (

@@ -1,6 +1,6 @@
 import { api } from "./api";
 
-export type LoginReq = { email: string; password: string };
+export type LoginReq = { email: string; phone: string; password: string };
 export type RegisterReq = {
   full_name: string;
   email: string;

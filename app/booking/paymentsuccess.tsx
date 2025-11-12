@@ -53,7 +53,7 @@ export default function PaymentSuccessScreen() {
           justifyContent: "center",
           borderRadius: 8,
         }}
-        onPress={() => router.push("/(tabs)/tickets")}
+        onPress={() => router.replace("/(tabs)/tickets")}
       >
         <Text style={{ textAlign: "center", fontWeight: 600, color: "#fff" }}>
           See your tickets

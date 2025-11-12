@@ -1,7 +1,10 @@
+import { useState } from "react";
 import ParallaxScrollView from "@/src/components/ParallaxScrollView";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
+import { theme } from "@/assets/colors";
 
 export default function Login() {
   const router = useRouter();
@@ -39,24 +42,29 @@ export default function Login() {
         <Text style={{ color: "#fff" }}>{t("continueWithPhone")}</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.loginMethodButton}
+        style={[{ backgroundColor: "#EA4335" }, styles.loginMethodButton]}
         onPress={() => signInWithGoogle()}
       >
-        <Text>{t("signInWithGoogle")}</Text>
+        <Ionicons name="logo-google" size={24} color={theme.textWhite} />
+        <Text style={{ color: theme.textWhite }}>{t("signInWithGoogle")}</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.loginMethodButton}
+        style={[{ backgroundColor: "#666666" }, styles.loginMethodButton]}
         onPress={() => signInWithApple()}
       >
-        <Text>{t("signInWithApple")}</Text>
+        <Ionicons name="logo-apple" color={theme.textWhite} size={24} />
+        <Text style={{ color: theme.textWhite }}>{t("signInWithApple")}</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.loginMethodButton}
+        style={[{ backgroundColor: "#3b5998" }, styles.loginMethodButton]}
         onPress={() => signInWithFacebook()}
       >
-        <Text>{t("signInWithFacebook")}</Text>
+        <Ionicons name="logo-facebook" size={24} color={theme.textWhite} />
+        <Text style={{ color: theme.textWhite }}>
+          {t("signInWithFacebook")}
+        </Text>
       </TouchableOpacity>
-      <Text style={styles.orLogin}>{t("orLoginWith")}</Text>
+      <Text style={styles.orLogin}>{t("noAcc")}</Text>
       <TouchableOpacity
         style={[styles.loginMethodButton, { backgroundColor: "#def8d8ff" }]}
         onPress={() => router.push("/auth/register")}
@@ -92,9 +100,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     height: 50,
-    backgroundColor: "#f0f0f0",
+    // backgroundColor: "#f0f0f0",
     borderRadius: 30,
     marginBottom: 7,
+    gap: 10,
   },
   orLogin: {
     textAlign: "center",

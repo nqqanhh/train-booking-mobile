@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -22,13 +23,18 @@ const LINE = "#E8EEE8";
 const PROFILE_CARD = "#BBBBBB";
 
 export default function Account() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
   const { user, logout } = useAuth();
   const { t } = useTranslation();
 
+  useEffect(() => {
+    setIsLoggedIn(!!user);
+  }, [user]);
+
   const onLogout = () => {
     logout();
-    router.push("/auth/login");
+    router.replace("/auth/login");
   };
 
   return (
@@ -87,6 +93,7 @@ export default function Account() {
           padding: 16,
           borderRadius: 10,
         }}
+        disabled={!isLoggedIn}
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Image
@@ -119,23 +126,24 @@ export default function Account() {
           {t("general")}
         </Text>
 
-        {/* Không bọc Pressable bên ngoài nữa, để Row tự handle onPress */}
         <Row
           icon="person"
           label={t("passengerProfiles")}
           onPress={() => router.push("/account/passengers")}
+          onDisable={!isLoggedIn}
         />
+
         <Row
           icon="language"
           label={t("languages")}
           onPress={() => router.push("/languages")}
         />
+
         <Row
-          icon="lock-closed"
-          label={t("security")}
-          onPress={() => router.push("/account/security")}
+          icon="ticket-outline"
+          label={t("voucherDiscount")}
+          onDisable={!isLoggedIn}
         />
-        <Row icon="ticket-outline" label={t("voucherDiscount")} />
         <Row icon="notifications-outline" label={t("notification")} />
 
         <Text style={{ fontWeight: "700", fontSize: 14, color: TEXT }}>
@@ -146,12 +154,13 @@ export default function Account() {
           icon="help-circle-outline"
           label={t("helpCenter")}
           onPress={() => router.push("/account/supportrequest")}
+          onDisable={!isLoggedIn}
         />
         <Row icon="star-outline" label={t("rateOurApp")} />
         <Row icon="document-text-outline" label={t("termsOfService")} />
 
         <TouchableOpacity
-          onPress={onLogout}
+          onPress={user ? onLogout : () => router.push("/auth/login")}
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
@@ -163,7 +172,9 @@ export default function Account() {
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <Ionicons name="log-out-outline" size={20} color="red" />
-            <Text style={{ color: "red" }}>{t("logout")}</Text>
+            <Text style={{ color: "red" }}>
+              {user ? t("logout") : t("backtologin")}
+            </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="red" />
         </TouchableOpacity>
@@ -177,10 +188,12 @@ function Row({
   icon,
   label,
   onPress,
+  onDisable,
 }: {
   icon: any;
   label: string;
   onPress?: () => void;
+  onDisable?: boolean;
 }) {
   return (
     <Pressable
@@ -194,6 +207,7 @@ function Row({
         borderBottomWidth: 1,
         borderBottomColor: LINE,
       }}
+      disabled={onDisable}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <Ionicons name={icon} size={20} color={TEXT} />
