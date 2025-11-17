@@ -39,7 +39,7 @@ export default function Account() {
 
   return (
     <View style={{ flex: 1, backgroundColor: BG }}>
-      {/* HEADER background image cover */}
+      
       <ImageBackground
         source={images.trainSubBg}
         resizeMode="cover"

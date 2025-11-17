@@ -50,12 +50,10 @@ export const getRouteIdByOriginDestination = async (
 
 export const getRouteById = async (id: number) => {
   const { data } = await api.get("/routes/" + id);
-  // console.log("[/routes/:id]", data);
   return data?.route || null;
 };
 
 export const getTripsByDate = async (routeId: number, dateISO: string) => {
-  // console.log("[bookingApi] getTripsByDate params", { routeId, dateISO });
   const { data } = await api.get("/trips/list", {
     params: {
       route_id: routeId,
@@ -78,7 +76,6 @@ export const getCarriages = async (tripId: number) => {
 
 export const getSeatMapByCarriage = async (carriageId: number) => {
   const { data } = await api.get(`/carriages/${carriageId}/seatmap`);
-  // console.log("[/seatmap raw]", data);
 
   // chấp nhận mọi kiểu backend có thể trả: {layout, seats} hoặc {template:{meta_json}, tripSeats:[]}
   let layout = data?.layout ?? data?.template?.meta_json ?? data?.meta_json;
@@ -173,7 +170,5 @@ export async function getTripSeatMapClient(tripId: number) {
   // Một số backend bọc { data: {...} } hoặc { success, data }
   const d = res?.data;
   const seatmap = (d?.carriages && d) || (d?.data?.carriages && d.data) || d; // fallback
-  // log để chắc chắn
-  // console.log("[svc seatmap keys]", Object.keys(seatmap || {}));
   return seatmap;
 }

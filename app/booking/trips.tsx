@@ -370,7 +370,7 @@ function TripCard({
           </Text>
         </View>
         <Text style={{ color: TEXT, fontWeight: "800", fontSize: 16 }}>
-          {price}
+          {/* {price}ddd */}
         </Text>
       </View>
     </TouchableOpacity>

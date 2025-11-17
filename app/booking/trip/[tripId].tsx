@@ -11,6 +11,7 @@ import {
   Text,
   View,
   useWindowDimensions,
+  FlatList,
 } from "react-native";
 import WebView from "react-native-webview";
 import { api } from "@/src/services/api";
@@ -25,6 +26,7 @@ import PreviewOrderModal, {
 } from "./components/PreviewOrderModal";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { useAuth } from "@/src/hooks/useAuth";
+import { useTranslation } from "react-i18next";
 
 type Trip = {
   id: number;
@@ -160,8 +162,10 @@ export default function SelectSeatScreen() {
   const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<number | null>(null);
 
+  //Current carriage
   const current = carriages[activeIdx];
 
+  const t = useTranslation();
   const loadTripHeader = useCallback(async () => {
     const { data } = await api.get(`/trips/${Number(tripId)}`);
     const t: Trip = data?.trip || data;
@@ -441,48 +445,46 @@ export default function SelectSeatScreen() {
       )}
 
       {/* Tabs toa */}
-      <View
-        style={{
-          paddingHorizontal: 6,
-          flexDirection: "row",
-          justifyContent: "space-around",
-          alignItems: "center",
-          height: "10%",
+      <FlatList
+        horizontal
+        data={carriages}
+        keyExtractor={(item) => String(item.id)}
+        ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
+        contentContainerStyle={{
+          paddingVertical: 4,
+          paddingHorizontal: 16,
         }}
-      >
-        {(carriages || []).map((c, i) => {
-          const active = i === activeIdx;
-          return (
-            <Pressable
-              key={c.id}
-              onPress={() => {
-                setActiveIdx(i);
-                setPicked([]);
-              }}
+        showsHorizontalScrollIndicator={false}
+        style={{ maxHeight: 60 }}
+        ListEmptyComponent={<ActivityIndicator color={theme.green} />}
+        renderItem={({ item: c, index }) => (
+          <Pressable
+            onPress={() => {
+              setActiveIdx(index);
+              setPicked([]);
+            }}
+            style={{
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+              borderRadius: 8,
+              backgroundColor: activeIdx === index ? theme.green : theme.rail,
+              justifyContent: "center",
+              minWidth: 80,
+            }}
+          >
+            <Text
               style={{
-                paddingVertical: 10,
-                paddingHorizontal: 14,
-                borderRadius: 12,
-                backgroundColor: active ? theme.green : theme.rail,
-                width: "30%",
-                height: "70%",
-                justifyContent: "center",
+                color: activeIdx === index ? theme.white : theme.text,
+                fontWeight: "600",
+                fontSize: 14,
+                textAlign: "center",
               }}
             >
-              <Text
-                style={{
-                  color: active ? theme.white : theme.text,
-                  fontWeight: "700",
-                  fontSize: 12,
-                  textAlign: "center",
-                }}
-              >
-                {c.name || `Coach ${c.carriage_no ?? i + 1}`}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+              {c.name || `Coach ${c.carriage_no ?? c.id + 1}`}
+            </Text>
+          </Pressable>
+        )}
+      />
 
       {/* Cabin + seats */}
       <ScrollView
@@ -746,9 +748,9 @@ function SeatGridFixed({
     );
   }
 
-  const grid: JSX.Element[] = [];
+  const grid: React.JSX.Element[] = [];
   for (let r = 1; r <= rows; r++) {
-    const line: JSX.Element[] = [];
+    const line: React.JSX.Element[] = [];
     for (let c = 1; c <= cols; c++) {
       const seat = byKey.get(`${r}-${c}`);
       if (!seat) {

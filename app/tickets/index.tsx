@@ -159,7 +159,7 @@ export default function MyTicketsScreen() {
                       fontWeight: "700",
                     }}
                   >
-                    {used ? "USED" : refunded ? "REFUNDED" : t("active")}
+                    {used ? t("used") : refunded ? t("refunded") : t("active")}
                   </Text>
                 </View>
                 {/* nếu cần xem QR, bạn có thể thêm nút mở modal QR từ qr_payload */}

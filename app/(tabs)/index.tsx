@@ -1,4 +1,3 @@
-// app/(tabs)/index.tsx
 import { Redirect, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -8,13 +7,14 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   SafeAreaViewBase,
   StyleSheet,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   getRouteIdByOriginDestination,
   getRoutes,
@@ -52,6 +52,11 @@ export default function HomeScreen() {
   const [routes, setRoutes] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [isSelectingOrigin, setIsSelectingOrigin] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState<"depart" | "return">(
+    "depart"
+  );
   const departStr = useMemo(() => formatDate(depart), [depart]);
   const returnStr = useMemo(() => formatDate(ret), [ret]);
   const { user } = useAuth();
@@ -75,7 +80,9 @@ export default function HomeScreen() {
   const stationList = [
     ...new Set(routes.flatMap((r) => [r.origin, r.destination])),
   ];
-  console.log(stationList);
+  const filteredStations = stationList.filter((station) =>
+    station.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const onSearch = async () => {
     const route = await getRouteByOriginDestination(fromLoc, toLoc);
     const routeId = route.id;
@@ -106,6 +113,20 @@ export default function HomeScreen() {
     });
   };
 
+  const onChangeDate = (e: any, selectedDate?: Date) => {
+    if (datePickerMode === "return") {
+      setRet(selectedDate || ret);
+      setShowDatePicker(false);
+      return;
+    }
+    setDepart(selectedDate || depart);
+    setShowDatePicker(false);
+  };
+
+  const showMode = (modeToShow: any) => {
+    setShowDatePicker(true);
+    setDatePickerMode(modeToShow);
+  };
   const handleToggleModal = () => {
     setModalVisible((modalVisible) => (modalVisible = !modalVisible));
     console.log(modalVisible);
@@ -203,9 +224,7 @@ export default function HomeScreen() {
               value={departStr}
               style={{ flex: 1 }}
               onPress={() => {
-                // Nếu đã cài DateTimePicker thì mở ở đây,
-                // còn demo thì đổi +1 ngày
-                setDepart(new Date(depart.getTime() + 86400000));
+                showMode("depart");
               }}
             />
             {!oneWay && (
@@ -214,11 +233,20 @@ export default function HomeScreen() {
                 value={returnStr}
                 style={{ flex: 1 }}
                 onPress={() => {
-                  setRet(new Date(ret.getTime() + 86400000));
+                  showMode("return");
                 }}
               />
             )}
           </View>
+          {showDatePicker && (
+            <DateTimePicker
+              value={datePickerMode === "depart" ? depart : ret}
+              mode="date"
+              is24Hour
+              style={{ marginTop: 10 }}
+              onChange={onChangeDate}
+            />
+          )}
 
           {/* Seats stepper */}
           <View
@@ -362,29 +390,41 @@ export default function HomeScreen() {
               {isSelectingOrigin ? t("selectOrigin") : t("selectDestination")}
             </Text>
 
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: theme.line,
+                borderRadius: 8,
+                padding: 10,
+                marginBottom: 10,
+                fontSize: 16,
+              }}
+              placeholder="Search stations..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+
             <ScrollView>
-              {stationList.map((r) => {
-                const stations = isSelectingOrigin ? r.origin : r.destination;
-                return (
-                  <Pressable
-                    key={r.id + (isSelectingOrigin ? "o" : "d")}
-                    onPress={() => {
-                      if (isSelectingOrigin) setFromLoc(stations);
-                      else setToLoc(stations);
-                      setModalVisible(false);
-                    }}
-                    style={{
-                      paddingVertical: 10,
-                      borderBottomWidth: 1,
-                      borderBottomColor: "#eee",
-                    }}
-                  >
-                    <Text style={{ fontSize: 15, color: theme.text }}>
-                      {stations}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+              {filteredStations.map((station) => (
+                <Pressable
+                  key={station}
+                  onPress={() => {
+                    if (isSelectingOrigin) setFromLoc(station);
+                    else setToLoc(station);
+                    setModalVisible(false);
+                    setSearchQuery("");
+                  }}
+                  style={{
+                    paddingVertical: 10,
+                    borderBottomWidth: 1,
+                    borderBottomColor: "#eee",
+                  }}
+                >
+                  <Text style={{ fontSize: 15, color: theme.text }}>
+                    {station}
+                  </Text>
+                </Pressable>
+              ))}
             </ScrollView>
 
             <TouchableOpacity

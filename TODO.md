@@ -5,3 +5,4 @@
 - Update import in app/(tabs)/index.tsx to import Login from "../auth/login"
 - Update router.push in src/screens/auth/login.tsx to "/auth/register" instead of "/register"
 - Test the navigation
+- Fix carriage FlatList sizing: reduce height, adjust item widths/heights, decrease separator width
