@@ -130,5 +130,7 @@
   "reEnterYourPassword": "Re-enter your password",
   "termsAndPrivacyPre": "By entering and tapping Register, you agree to the ",
   "termsAndPrivacy": "Terms & Privacy Policy.",
-  "register": "Register"
+  "register": "Register",
+  "limitReached": "Limit reached",
+  "passengerLimitInfo": "You can only select up to {passengerNum} seat(s)."
 }

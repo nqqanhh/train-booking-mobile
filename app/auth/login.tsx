@@ -1,7 +1,13 @@
 import { useState } from "react";
 import ParallaxScrollView from "@/src/components/ParallaxScrollView";
 import { useRouter } from "expo-router";
-import { Image, StyleSheet, Text, TouchableOpacity } from "react-native";
+import {
+  ImageBackground,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { theme } from "@/assets/colors";
@@ -26,11 +32,30 @@ export default function Login() {
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
       headerImage={
-        <Image
+        <ImageBackground
           source={require("@/assets/images/train_imgage.jpg")}
           style={{ width: "100%", height: "100%" }}
           resizeMode="cover"
-        />
+        >
+          <TouchableOpacity
+            style={{
+              position: "absolute",
+              left: 16,
+              top: 40,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 999,
+              backgroundColor: "rgba(0,0,0,0.6)",
+            }}
+            onPress={() => router.push("/(tabs)/profile")}
+          >
+            <Ionicons
+              name="chevron-back-circle-sharp"
+              size={20}
+              color={theme.green}
+            />
+          </TouchableOpacity>
+        </ImageBackground>
       }
     >
       <Text style={styles.titleLogin}>{t("login")}</Text>

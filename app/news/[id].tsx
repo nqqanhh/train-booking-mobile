@@ -4,6 +4,7 @@ import { View, ActivityIndicator } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { WebView } from "react-native-webview";
 import { fetchTrainArticleDetail } from "@/src/services/newsApi";
+import { theme } from "@/assets/colors";
 
 export default function NewsDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -21,7 +22,7 @@ export default function NewsDetail() {
   if (!url)
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
+        <ActivityIndicator color={theme.green} />
       </View>
     );
   return <WebView source={{ uri: url }} />;

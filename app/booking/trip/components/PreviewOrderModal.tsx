@@ -12,7 +12,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Autocomplete from "react-native-autocomplete-input";
-import { getPassengerProfiles } from "@/src/services/userApi";
+import {
+  getPassengerProfiles,
+  createPassengerProfile,
+} from "@/src/services/userApi";
 import { useRouter } from "expo-router";
 
 import CreatePassengerModal from "@/app/account/passengers/components/CreatePassengerModal";
@@ -218,8 +221,12 @@ const PreviewOrderModal: React.FC<Props> = ({
                               }}
                               inputContainerStyle={styles.autoInputContainer}
                               listContainerStyle={styles.autoListContainer}
-                              listStyle={styles.autoList}
+                              style={{
+                                backgroundColor: theme.green,
+                                paddingHorizontal: 8,
+                              }}
                               placeholder="Chọn hành khách"
+                              placeholderTextColor={theme.textWhite}
                             />
                             <TouchableOpacity
                               style={{
@@ -230,8 +237,11 @@ const PreviewOrderModal: React.FC<Props> = ({
                               }}
                               onPress={() => handleAddPassenger(seatCode)}
                             >
-                              <Ionicons name="add" />
-                              <Text>hahax</Text>
+                              <Ionicons
+                                name="person-add-outline"
+                                size={20}
+                                color={theme.textWhite}
+                              />
                             </TouchableOpacity>
                           </View>
                           {assignments[seatCode] && (
@@ -249,13 +259,27 @@ const PreviewOrderModal: React.FC<Props> = ({
                       setOpenCreatePassengerModal(false);
                       setSeatForNewPassenger(null);
                     }}
-                    onSubmit={(newPassenger) => {
-                      setPassengers((prev) => [newPassenger, ...prev]);
-                      if (seatForNewPassenger) {
-                        selectPassenger(seatForNewPassenger, newPassenger);
+                    onSubmit={async (newPassenger) => {
+                      try {
+                        // Call API to create passenger
+                        const created = await createPassengerProfile(
+                          newPassenger
+                        );
+                        const passengerOption: PassengerOption = {
+                          id: Number(created.id ?? created.passenger_id ?? 0),
+                          name: created.fullName ?? created.name ?? "",
+                          phone: created.phone,
+                        };
+                        setPassengers((prev) => [passengerOption, ...prev]);
+                        if (seatForNewPassenger) {
+                          selectPassenger(seatForNewPassenger, passengerOption);
+                        }
+                        setOpenCreatePassengerModal(false);
+                        setSeatForNewPassenger(null);
+                      } catch (e) {
+                        console.log("Error creating passenger:", e);
+                        // Handle error, maybe show alert
                       }
-                      setOpenCreatePassengerModal(false);
-                      setSeatForNewPassenger(null);
                     }}
                   />
                   <View style={{ marginTop: 12 }}>

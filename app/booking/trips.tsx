@@ -15,18 +15,23 @@ import {
 import { useTranslation } from "react-i18next";
 import images from "../../assets/images/index";
 import { getRouteById, getTripsByDate } from "../../src/services/bookingApi";
+import { theme } from "@/assets/colors";
+import { Ionicons } from "@expo/vector-icons";
 
 type Trip = {
   id: number;
   route_id: number;
   departure_time: string; // "YYYY-MM-DD HH:mm:ss"
   arrival_time: string;
+  route?: { origin: string; destination: string };
   vehicle_no: string;
   status: string;
   min_price?: number | null;
-  route?: { origin: string; destination: string };
 };
-
+type Route = {
+  origin: string;
+  destination: string;
+};
 const GREEN = "#3ac21fff";
 const GREEN_DARK = "#5CA33A";
 const BG = "#F6FAF6";
@@ -47,6 +52,11 @@ export default function TripsListScreen() {
     : Number(routeIdParam);
 
   const dateParam = params.date as string | string[] | undefined;
+  const passengersParam = params.passengers as string | string[] | undefined;
+  const passengers = Array.isArray(passengersParam)
+    ? passengersParam[0]
+    : passengersParam || "1";
+
   const [selectedDate, setSelectedDate] = useState(
     dayjs(
       Array.isArray(dateParam)
@@ -69,7 +79,7 @@ export default function TripsListScreen() {
         setLoading(true);
         const d = selectedDate.format("YYYY-MM-DD");
         const list = await getTripsByDate(routeId, d);
-        setTrips(list as Trip[]);
+        setTrips((list as Trip[]).filter((t) => t && t.id));
       } catch (e) {
         console.log("load trips error:", e);
         setTrips([]);
@@ -239,7 +249,7 @@ export default function TripsListScreen() {
             onPress={() =>
               router.push({
                 pathname: "/booking/trip/[tripId]",
-                params: { tripId: String(item.id) },
+                params: { tripId: String(item.id), passengers: passengers },
               })
             }
           />
@@ -282,11 +292,13 @@ function CityPill({
 
 function TripCard({
   trip,
+  route,
   cheapest,
   fastest,
   onPress,
 }: {
   trip: Trip;
+  route: Route;
   cheapest?: boolean;
   fastest?: boolean;
   onPress: () => void;
@@ -336,23 +348,52 @@ function TripCard({
             style={{ width: 40, height: 40, resizeMode: "cover" }}
           />
         </View>
-      </View>
-
-      {/* times */}
-      <View
-        style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}
-      >
-        <Text style={{ fontWeight: "800", fontSize: 18, color: TEXT }}>
-          {dep}
-        </Text>
-        <View style={{ flex: 1, alignItems: "center" }}>
-          <DurationBar label={duration} />
+        <View>
+          <Text>
+            Từ{" "}
+            <Text style={{ color: theme.green, fontSize: 18 }}>300.000đ</Text>
+          </Text>
+          <Text>Còn {"<N>"} chỗ</Text>
         </View>
-        <Text style={{ fontWeight: "800", fontSize: 18, color: TEXT }}>
-          {arr}
-        </Text>
       </View>
 
+      <View>
+        {/* times */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 8,
+          }}
+        >
+          <Text style={{ fontWeight: "500", fontSize: 18, color: TEXT }}>
+            {dep}
+          </Text>
+          <View style={{ flex: 1, alignItems: "center", marginTop: 10 }}>
+            <DurationBar label={duration} />
+          </View>
+          <Text style={{ fontWeight: "500", fontSize: 18, color: TEXT }}>
+            {arr}
+          </Text>
+        </View>
+        {/* Stations */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 8,
+          }}
+        >
+          <Text style={{ fontWeight: "200", fontSize: 18, color: TEXT }}>
+            {route?.origin || "Ga đi"}
+          </Text>
+
+          <Text style={{ fontWeight: "200", fontSize: 18, color: TEXT }}>
+            {route?.destination || "Ga đến"}
+          </Text>
+        </View>
+      </View>
       {/* stations + price */}
       <View
         style={{
@@ -362,11 +403,9 @@ function TripCard({
         }}
       >
         <View>
-          <Text style={{ color: SUB, fontSize: 12 }}>
-            {trip.route?.origin || `Route #${trip.route_id}`}
-          </Text>
-          <Text style={{ color: SUB, fontSize: 12 }}>
-            {trip.route?.destination || ""}
+          <Text style={{ color: SUB, fontSize: 18 }}>
+            <Ionicons name="train" size={20} color={theme.green} />
+            {` Tàu ${trip.vehicle_no} `}
           </Text>
         </View>
         <Text style={{ color: TEXT, fontWeight: "800", fontSize: 16 }}>

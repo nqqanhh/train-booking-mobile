@@ -27,6 +27,7 @@ import PreviewOrderModal, {
 import { AuthProvider } from "@/src/context/AuthContext";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useTranslation } from "react-i18next";
+import { setItem } from "expo-secure-store";
 
 type Trip = {
   id: number;
@@ -93,7 +94,7 @@ const theme = {
   white: "#fff",
 };
 
-function normalizeSeat(raw: any): SeatMerged {
+function normalizeSeat(raw: any, carriageId: number): SeatMerged {
   const row = Number(raw.row ?? raw.pos_row ?? 0);
   const col = Number(raw.col ?? raw.pos_col ?? 0);
   const cls = String(raw.class ?? raw.seat_class ?? "standard").toLowerCase();
@@ -135,7 +136,12 @@ function normalizeSeat(raw: any): SeatMerged {
 }
 
 const hhmm = (s?: string) => String(s || "").slice(11, 16);
-
+const ddmmyy = (s?: string) =>
+  String(s || "").slice(8, 10) +
+  "/" +
+  String(s || "").slice(5, 7) +
+  "/" +
+  String(s || "").slice(0, 4);
 export default function SelectSeatScreen() {
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
   const router = useRouter();
@@ -166,14 +172,16 @@ export default function SelectSeatScreen() {
   const current = carriages[activeIdx];
 
   const t = useTranslation();
+  const passengers = useLocalSearchParams<{ passengers: string }>().passengers;
+  const passengersNum = parseInt(passengers || "1", 10);
   const loadTripHeader = useCallback(async () => {
     const { data } = await api.get(`/trips/${Number(tripId)}`);
-    const t: Trip = data?.trip || data;
-    setTrip(t);
+    const trip: Trip = data?.trip || data;
+    setTrip(trip);
 
-    if (t?.route_id) {
+    if (trip?.route_id) {
       try {
-        const r = await api.get(`/routes/${t.route_id}`);
+        const r = await api.get(`/routes/${trip.route_id}`);
         setRouteInfo(r.data?.route || r.data);
       } catch {}
     }
@@ -270,9 +278,22 @@ export default function SelectSeatScreen() {
   const toggleSeat = (code: string) => {
     const s = seatByCode.get(code);
     if (!s || s.sold) return;
-    setPicked((prev) =>
-      prev.includes(code) ? prev.filter((x) => x !== code) : [...prev, code]
-    );
+    setPicked((prev) => {
+      if (prev.includes(code)) {
+        // Removing seat, always allow
+        return prev.filter((x) => x !== code);
+      } else {
+        // Adding seat, check limit
+        if (prev.length >= passengersNum) {
+          Alert.alert(
+            "Limit reached",
+            `You can only select up to ${passengersNum} seats.`
+          );
+          return prev;
+        }
+        return [...prev, code];
+      }
+    });
   };
 
   // ==== PREVIEW ====
@@ -289,7 +310,7 @@ export default function SelectSeatScreen() {
       const normalized: OrderPreview = {
         trip_id: `#${data?.trip_id ?? trip?.id ?? ""}`,
         trip_name: routeInfo
-          ? `${routeInfo.origin} → ${routeInfo.destination}`
+          ? `Ga ${routeInfo.origin} → Ga ${routeInfo.destination}`
           : trip
           ? `Route #${trip.route_id}`
           : "N/A",
@@ -361,12 +382,15 @@ export default function SelectSeatScreen() {
     if (url.includes("example.com/return")) {
       try {
         console.log({ order_id: orderId, paypal_order_id: paypalOrderId });
-        await paypalCapture({
+        paypalCapture({
           order_id: orderId,
           paypal_order_id: paypalOrderId,
         });
         setWebVisible(false);
-        router.replace("/booking/paymentsuccess");
+
+        setTimeout(() => {
+          router.replace("/booking/paymentsuccess");
+        }, 2000);
 
         // TODO: điều hướng sang My Tickets hoặc đâu đó
       } catch (e: any) {
@@ -432,13 +456,25 @@ export default function SelectSeatScreen() {
       {trip && (
         <View style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
           <Text style={{ fontWeight: "700", color: theme.text }}>
-            {trip.vehicle_no} •{" "}
+            Tàu {trip.vehicle_no} •{" "}
             {routeInfo
-              ? `${routeInfo.origin} → ${routeInfo.destination}`
+              ? `Ga ${routeInfo.origin} → Ga ${routeInfo.destination}`
               : `Route #${trip.route_id}`}
           </Text>
           <Text style={{ color: theme.sub }}>
-            {hhmm(trip.departure_time)} — {hhmm(trip.arrival_time)} •{" "}
+            {ddmmyy(trip.departure_time) === ddmmyy(trip.arrival_time)
+              ? ddmmyy(trip.departure_time) +
+                " • " +
+                hhmm(trip.departure_time) +
+                " — " +
+                hhmm(trip.arrival_time)
+              : ddmmyy(trip.departure_time) +
+                " • " +
+                hhmm(trip.departure_time) +
+                " — " +
+                ddmmyy(trip.arrival_time) +
+                " • " +
+                hhmm(trip.arrival_time)}
             {/* {trip.status} */}
           </Text>
         </View>
@@ -461,7 +497,6 @@ export default function SelectSeatScreen() {
           <Pressable
             onPress={() => {
               setActiveIdx(index);
-              setPicked([]);
             }}
             style={{
               paddingVertical: 8,
@@ -716,12 +751,14 @@ function SeatGridFixed({
   cols,
   seats,
   selected,
+  limit,
   onToggle,
 }: {
   rows: number;
   cols: number;
   seats: SeatMerged[];
   selected: string[];
+  limit?: number;
   onToggle: (code: string) => void;
 }) {
   const { width } = useWindowDimensions();
@@ -808,7 +845,7 @@ function SeatGridFixed({
               color: sold ? "#B42318" : isSel ? theme.white : theme.text,
             }}
           >
-            {seat.seat_code}
+            {seat.seat_code.split("-")[1] || seat.seat_code}
           </Text>
         </Pressable>
       );

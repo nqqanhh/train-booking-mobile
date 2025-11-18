@@ -1,5 +1,5 @@
 import { Redirect, useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -12,16 +12,23 @@ import {
   View,
   SafeAreaViewBase,
   StyleSheet,
+  Alert,
+  useWindowDimensions,
+  Image,
+  Animated,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import Draggable from "react-native-draggable";
 import {
   getRouteIdByOriginDestination,
   getRoutes,
   getRouteByOriginDestination,
 } from "@/src/services/bookingApi";
 import { useAuth } from "@/src/hooks/useAuth";
-
+import Chatbot from "@/src/components/Chatbot";
+import { moderateScale } from "react-native-size-matters";
+import Svg, { Path } from "react-native-svg";
 // (tuỳ chọn) nếu muốn date picker native:
 // expo install @react-native-community/datetimepicker
 // import DateTimePicker from '@react-native-community/datetimepicker';
@@ -57,6 +64,13 @@ export default function HomeScreen() {
   const [datePickerMode, setDatePickerMode] = useState<"depart" | "return">(
     "depart"
   );
+  const [chatbotVisible, setChatbotVisible] = useState(false);
+  const [chatbotQuoteVisible, setChatbotQuoteVisible] = useState(true);
+  const { width, height } = useWindowDimensions();
+  const initialX = width - 20;
+  const initialY = height - 700;
+  const shrinkAnim = useRef(new Animated.Value(1)).current;
+
   const departStr = useMemo(() => formatDate(depart), [depart]);
   const returnStr = useMemo(() => formatDate(ret), [ret]);
   const { user } = useAuth();
@@ -64,7 +78,14 @@ export default function HomeScreen() {
     setLoading(true);
     try {
       const res = await getRoutes();
-      setRoutes(res);
+      const uniqueRoutes = res.filter(
+        (r: any, index: number, self: any[]) =>
+          self.findIndex(
+            (r2: any) =>
+              r2.origin === r.origin && r2.destination === r.destination
+          ) === index
+      );
+      setRoutes(uniqueRoutes.slice(1));
     } catch (error) {
       console.log("Error fetching routes:", error);
     } finally {
@@ -74,29 +95,34 @@ export default function HomeScreen() {
   useEffect(() => {
     fetchRoutes();
   }, []);
+  // useEffect(() => {
+  //   !user ? router.replace("/auth/login") : null;
+  // }, []);
+
   useEffect(() => {
-    !user ? router.replace("/auth/login") : null;
+    setTimeout(() => {
+      setChatbotQuoteVisible(false);
+    }, 5000);
   }, []);
   const stationList = [
     ...new Set(routes.flatMap((r) => [r.origin, r.destination])),
   ];
+
   const filteredStations = stationList.filter((station) =>
     station.toLowerCase().includes(searchQuery.toLowerCase())
   );
   const onSearch = async () => {
     const route = await getRouteByOriginDestination(fromLoc, toLoc);
+    if (!route) {
+      Platform.OS === "web"
+        ? alert(`Không tìm thấy tuyến ${fromLoc} -> ${toLoc}`)
+        : Alert.alert(`Không tìm thấy tuyến ${fromLoc} -> ${toLoc}`);
+      return;
+    }
     const routeId = route.id;
     if (!routeId || isNaN(Number(routeId))) {
       alert("Không tìm thấy route hợp lệ (routeId null/NaN)");
-      return (
-        <View>
-          <Text>
-            Không tìm thấy tuyến {fromLoc}
-            {"->"}
-            {toLoc}
-          </Text>
-        </View>
-      );
+      return;
     }
     router.push({
       pathname: "/booking/trips",
@@ -332,13 +358,11 @@ export default function HomeScreen() {
           <FlatList
             horizontal
             data={routes}
-            // TRẢ VỀ STRING!
             keyExtractor={(item) => String(item.id)}
-            // Tạo khoảng cách giữa chips
             ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
             contentContainerStyle={{ paddingVertical: 4, paddingRight: 16 }}
             showsHorizontalScrollIndicator={false}
-            style={{ height: 40 }} // đảm bảo có chiều cao để hiển thị
+            style={{ height: 40 }}
             ListEmptyComponent={
               <Text style={{ color: theme.sub }}>{t("noRoutes")}</Text>
             }
@@ -355,7 +379,7 @@ export default function HomeScreen() {
           />
         )}
       </View>
-      {/* Modal */}
+
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -441,6 +465,105 @@ export default function HomeScreen() {
                 {t("close")}
               </Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Floating Button for Chatbot */}
+      <Draggable x={initialX} y={initialY} onDrag={(event, gestureState) => {}}>
+        {chatbotQuoteVisible ? (
+          <TouchableOpacity
+            style={[styles.item, styles.itemOut]}
+            onPress={() => setChatbotVisible(true)}
+          >
+            <View style={[styles.balloon, { backgroundColor: theme.green }]}>
+              <Text style={{ paddingTop: 5, color: "white" }}>
+                Hey, how can I help you? {":)"}
+              </Text>
+              <View style={[styles.arrowContainer, styles.arrowRightContainer]}>
+                <Svg
+                  style={styles.arrowRight}
+                  width={moderateScale(15.5, 0.6)}
+                  height={moderateScale(17.5, 0.6)}
+                  viewBox="32.485 17.5 15.515 17.5"
+                  enable-background="new 32.485 17.5 15.515 17.5"
+                >
+                  <Path
+                    d="M48,35c-7-4-6-8.75-6-17.5C28,17.5,29,35,48,35z"
+                    fill={theme.green}
+                    x="0"
+                    y="0"
+                  />
+                </Svg>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ) : null}
+
+        <TouchableOpacity
+          onPress={() => setChatbotVisible(true)}
+          style={{
+            position: "absolute",
+            bottom: -230,
+            right: 20,
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            backgroundColor: theme.green,
+            alignItems: "center",
+            justifyContent: "center",
+            shadowColor: "#000",
+            shadowOpacity: 0.3,
+            shadowOffset: { width: 0, height: 4 },
+            shadowRadius: 8,
+            elevation: 5,
+          }}
+        >
+          <Image
+            source={require("@/assets/images/chatboticon.jpg")}
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 36,
+              marginRight: 16,
+            }}
+          />
+        </TouchableOpacity>
+      </Draggable>
+      {/* Chatbot Modal */}
+      <Modal
+        visible={chatbotVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setChatbotVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <View
+            style={{
+              height: "80%",
+              backgroundColor: "#fff",
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              padding: 10,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => setChatbotVisible(false)}
+              style={{
+                alignSelf: "flex-end",
+                marginBottom: 10,
+                padding: 5,
+              }}
+            >
+              <Text style={{ fontSize: 18, color: theme.text }}>✕</Text>
+            </TouchableOpacity>
+            <Chatbot />
           </View>
         </View>
       </Modal>
@@ -588,3 +711,41 @@ function toISO(d: Date) {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
+
+const styles = StyleSheet.create({
+  item: {
+    marginVertical: moderateScale(7, 2),
+    flexDirection: "row",
+    position: "absolute",
+    bottom: -190,
+    right: 200,
+    zIndex: 1000,
+  },
+  itemOut: {
+    alignSelf: "flex-end",
+    marginRight: 20,
+  },
+  balloon: {
+    maxWidth: moderateScale(250, 2),
+    paddingHorizontal: moderateScale(10, 2),
+    paddingTop: moderateScale(5, 2),
+    paddingBottom: moderateScale(7, 2),
+    borderRadius: 20,
+  },
+  arrowContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1,
+    flex: 1,
+  },
+  arrowRightContainer: {
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+  },
+  arrowRight: {
+    right: moderateScale(-6, 0.5),
+  },
+});

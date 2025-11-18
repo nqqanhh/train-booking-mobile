@@ -5,10 +5,17 @@ import { useAuth } from "../../src/hooks/useAuth";
 // app/(tabs)/_layout.tsx
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { theme } from "@/assets/colors";
 
 export default function TabsLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false }}>
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveBackgroundColor: theme.green,
+        tabBarActiveTintColor: theme.textWhite,
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{

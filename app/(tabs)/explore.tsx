@@ -140,7 +140,7 @@ export default function ExploreClientPaging() {
 
       {loading && visible.length === 0 ? (
         <View style={styles.center}>
-          <ActivityIndicator />
+          <ActivityIndicator color={theme.green} />
         </View>
       ) : (
         <FlatList
