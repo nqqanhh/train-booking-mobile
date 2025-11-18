@@ -74,6 +74,11 @@ export const getCarriages = async (tripId: number) => {
   return data?.carriages ?? data ?? [];
 };
 
+export const getTripAvailableSeats = async (tripId: number) => {
+  const { data } = await api.get(`trips/${tripId}/available-seats`);
+  return data?.available_seats ?? [];
+};
+
 export const getSeatMapByCarriage = async (carriageId: number) => {
   const { data } = await api.get(`/carriages/${carriageId}/seatmap`);
 

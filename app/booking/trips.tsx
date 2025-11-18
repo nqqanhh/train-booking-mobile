@@ -14,7 +14,11 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import images from "../../assets/images/index";
-import { getRouteById, getTripsByDate } from "../../src/services/bookingApi";
+import {
+  getRouteById,
+  getTripAvailableSeats,
+  getTripsByDate,
+} from "../../src/services/bookingApi";
 import { theme } from "@/assets/colors";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -68,6 +72,9 @@ export default function TripsListScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
+  const [availableSeatsMap, setAvailableSeatsMap] = useState<
+    Map<number, number>
+  >(new Map());
   const [trips, setTrips] = useState<Trip[]>([]);
   const [route, setRoute] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -88,6 +95,27 @@ export default function TripsListScreen() {
       }
     })();
   }, [routeId, selectedDate]);
+
+  useEffect(() => {
+    if (trips.length > 0) {
+      const fetchAvailableSeats = async () => {
+        const seatsMap = new Map<number, number>();
+        await Promise.all(
+          trips.map(async (trip) => {
+            try {
+              const count = await getTripAvailableSeats(trip.id);
+              seatsMap.set(trip.id, count);
+            } catch (error) {
+              console.log(`Error fetching seats for trip ${trip.id}:`, error);
+              seatsMap.set(trip.id, 0); // fallback to 0
+            }
+          })
+        );
+        setAvailableSeatsMap(seatsMap);
+      };
+      fetchAvailableSeats();
+    }
+  }, [trips]);
 
   // chuẩn bị highlight “Cheapest” & “Fastest”
   const cheapestId = useMemo(() => {
@@ -153,7 +181,7 @@ export default function TripsListScreen() {
   if (loading) {
     return (
       <Center>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={theme.green} />
         <Text>{t("loadingResults")}</Text>
       </Center>
     );
@@ -244,7 +272,9 @@ export default function TripsListScreen() {
         renderItem={({ item }) => (
           <TripCard
             trip={item}
+            route={route}
             cheapest={item.id === cheapestId}
+            availableSeats={availableSeatsMap.get(item.id) ?? 0}
             fastest={item.id === fastestId}
             onPress={() =>
               router.push({
@@ -295,12 +325,14 @@ function TripCard({
   route,
   cheapest,
   fastest,
+  availableSeats,
   onPress,
 }: {
   trip: Trip;
   route: Route;
   cheapest?: boolean;
   fastest?: boolean;
+  availableSeats?: number;
   onPress: () => void;
 }) {
   const dep = timeHHMM(trip.departure_time);
@@ -353,7 +385,9 @@ function TripCard({
             Từ{" "}
             <Text style={{ color: theme.green, fontSize: 18 }}>300.000đ</Text>
           </Text>
-          <Text>Còn {"<N>"} chỗ</Text>
+          <Text style={{ fontWeight: 300, fontSize: 19 }}>
+            Còn {availableSeats} chỗ
+          </Text>
         </View>
       </View>
 
@@ -363,7 +397,7 @@ function TripCard({
           style={{
             flexDirection: "row",
             alignItems: "center",
-            marginBottom: 8,
+            marginBottom: 0,
           }}
         >
           <Text style={{ fontWeight: "500", fontSize: 18, color: TEXT }}>
@@ -386,11 +420,11 @@ function TripCard({
           }}
         >
           <Text style={{ fontWeight: "200", fontSize: 18, color: TEXT }}>
-            {route?.origin || "Ga đi"}
+            {"Ga " + route?.origin || "Ga đi"}
           </Text>
 
           <Text style={{ fontWeight: "200", fontSize: 18, color: TEXT }}>
-            {route?.destination || "Ga đến"}
+            {"Ga " + route?.destination || "Ga đến"}
           </Text>
         </View>
       </View>
@@ -403,7 +437,7 @@ function TripCard({
         }}
       >
         <View>
-          <Text style={{ color: SUB, fontSize: 18 }}>
+          <Text style={{ color: theme.sub, fontSize: 18 }}>
             <Ionicons name="train" size={20} color={theme.green} />
             {` Tàu ${trip.vehicle_no} `}
           </Text>
@@ -442,6 +476,7 @@ function Badge({
 function DurationBar({ label }: { label: string }) {
   return (
     <View style={{ alignItems: "center" }}>
+      <Text style={{ color: SUB, fontSize: 19 }}>{label}</Text>
       <View
         style={{
           width: 140,
@@ -466,7 +501,6 @@ function DurationBar({ label }: { label: string }) {
           }}
         />
       </View>
-      <Text style={{ color: SUB, fontSize: 12 }}>{label}</Text>
     </View>
   );
 }

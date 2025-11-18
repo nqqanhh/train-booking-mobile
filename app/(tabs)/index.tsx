@@ -478,7 +478,7 @@ export default function HomeScreen() {
           >
             <View style={[styles.balloon, { backgroundColor: theme.green }]}>
               <Text style={{ paddingTop: 5, color: "white" }}>
-                Hey, how can I help you? {":)"}
+                {t("botQuote")} {":)"}
               </Text>
               <View style={[styles.arrowContainer, styles.arrowRightContainer]}>
                 <Svg
@@ -524,8 +524,8 @@ export default function HomeScreen() {
             style={{
               width: 72,
               height: 72,
-              borderRadius: 36,
-              marginRight: 16,
+              borderRadius: 50,
+              marginRight: 1,
             }}
           />
         </TouchableOpacity>
@@ -716,9 +716,10 @@ const styles = StyleSheet.create({
   item: {
     marginVertical: moderateScale(7, 2),
     flexDirection: "row",
+    justifyContent: "flex-end",
     position: "absolute",
     bottom: -190,
-    right: 200,
+    right: 70,
     zIndex: 1000,
   },
   itemOut: {

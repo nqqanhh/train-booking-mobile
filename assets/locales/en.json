@@ -132,5 +132,6 @@
   "termsAndPrivacy": "Terms & Privacy Policy.",
   "register": "Register",
   "limitReached": "Limit reached",
-  "passengerLimitInfo": "You can only select up to {passengerNum} seat(s)."
+  "passengerLimitInfo": "You can only select up to {passengerNum} seat(s).",
+  "botQuote": "Hey, how can I help you?"
 }

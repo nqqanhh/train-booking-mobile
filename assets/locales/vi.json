@@ -43,7 +43,7 @@
   "openingPaypal": "Đang mở PayPal…",
   "noData": "Không có dữ liệu",
   "templateNotSet": "Bố cục mẫu (hàng/cột) chưa được đặt",
-  "origin": "Điểm khởi hành",
+  "origin": "Ga khởi hành",
   "destination": "Ga đến",
   "invalidRouteId": "ID tuyến đường không hợp lệ. Vui lòng quay lại màn hình trước.",
   "noTripsForDate": "Không có chuyến nào cho ngày {date}",
@@ -59,8 +59,8 @@
   "popularDestinations": "Điểm đến phổ biến",
   "loadingRoutes": "Đang tải tuyến đường...",
   "noRoutes": "Không có tuyến đường",
-  "selectOrigin": "Chọn điểm khởi hành",
-  "selectDestination": "Chọn điểm đến",
+  "selectOrigin": "Chọn ga khởi hành",
+  "selectDestination": "Chọn ga đến",
   "close": "Đóng",
   "noValidRoute": "Không tìm thấy tuyến đường hợp lệ (routeId null/NaN)",
   "noRouteFound": "Không tìm thấy tuyến đường cho {from} -> {to}",
@@ -131,5 +131,6 @@
   "reEnterYourPassword": "Nhập lại mật khẩu của bạn",
   "termsAndPrivacyPre": "Bằng cách nhập và nhấn Đăng ký, bạn đồng ý với Điều khoản & Chính sách Bảo mật.",
   "termsAndPrivacy": "Điều khoản & Chính sách Bảo mật",
-  "register": "Đăng ký"
+  "register": "Đăng ký",
+  "botQuote": "Chào bạn, tôi có thể giúp gì cho bạn?"
 }
